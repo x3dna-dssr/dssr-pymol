@@ -1877,7 +1877,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
 
         self.filter_edit = QtWidgets.QLineEdit()
         self.filter_edit.setPlaceholderText(
-            'Filter (e.g. can, nc, "wc", wobble, Hoogsteen)...'
+            "Filter (e.g. canonical, !canonical, wc, Hoogsteen)..."
         )
         self.filter_edit.setClearButtonEnabled(True)
         self.filter_edit.textChanged.connect(self._on_filter_changed)
