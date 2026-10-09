@@ -51,8 +51,11 @@ DSSR_TIMEOUT_SECONDS = 300  # Default timeout in seconds (5 minutes)
 DSSR_LARGE_STRUCTURE_THRESHOLD = 20000  # Atom count threshold for warning
 
 # Window geometry defaults
-DSSR_DEFAULT_WINDOW_SIZE = (1280, 800)  # GUI dimensions
-DSSR_DEFAULT_SPLITTER_SIZES = [340, 940]  # Splitter partition (sidebar vs. 2D studio)
+DSSR_DEFAULT_WINDOW_SIZE = (1280, 800)  # (width, height)
+DSSR_DEFAULT_SPLITTER_WIDTHS = (
+    340,
+    940,
+)  # sidebar (340 px) + 2D studio (940 px) = 1280 px
 
 # DSSR structural feature mapping
 FEATURE_MAP = {
@@ -170,7 +173,6 @@ def _teardown_existing_dialog():
         except Exception:
             pass
 
-    # 1. Close active window instances found in Qt's top-level widget registry
     if QtWidgets is not None and QtWidgets.QApplication.instance() is not None:
         for w in QtWidgets.QApplication.topLevelWidgets():
             if isinstance(w, QtWidgets.QDialog) and (
@@ -179,7 +181,6 @@ def _teardown_existing_dialog():
             ):
                 _safe_close(w)
 
-    # 2. Clear references in current globals and shared cmd attribute
     for ref in (
         globals().get("_DSSR_GUI_DIALOG"),
         getattr(cmd, "_DSSR_GUI_DIALOG", None),
@@ -187,7 +188,6 @@ def _teardown_existing_dialog():
         if ref is not None:
             _safe_close(ref)
 
-    # 3. Clear references inside pre-imported plugin modules
     for mod_name in ("pymol.plugins.dssr_select", "dssr_select"):
         mod = sys.modules.get(mod_name)
         if mod and getattr(mod, "_DSSR_GUI_DIALOG", None):
@@ -1789,7 +1789,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         self._page = 0
         self._updating_context = False
         self._loading = False
-        self._editor_sizes = list(DSSR_DEFAULT_SPLITTER_SIZES)
+        self._editor_sizes = list(DSSR_DEFAULT_SPLITTER_WIDTHS)
         self._build_widgets()
         self._context_timer = QtCore.QTimer(self)
         self._context_timer.setInterval(750)
@@ -1970,7 +1970,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         self.splitter.addWidget(self.editor_container)
 
         self.splitter.setStretchFactor(1, 1)
-        self.splitter.setSizes(DSSR_DEFAULT_SPLITTER_SIZES)
+        self.splitter.setSizes(DSSR_DEFAULT_SPLITTER_WIDTHS)
 
         self.status_bar_widget = QtWidgets.QWidget()
         self.status_bar_widget.setObjectName("dssrStatusBar")
