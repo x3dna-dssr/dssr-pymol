@@ -2880,19 +2880,12 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         """
         global _DSSR_GUI_DIALOG
 
-        has_structure = bool(
-            [
-                name
-                for name in cmd.get_object_list()
-                if name not in _DSSR_BLOCK_OBJECTS
-                and not name.startswith("_dssr_2d_")
-                and cmd.count_atoms(name) > 0
-            ]
-        )
-
         if _DSSR_GUI_DIALOG is None:
             _DSSR_GUI_DIALOG = DssrGuiDialog()
         host = _DSSR_GUI_DIALOG
+
+        has_structure = bool(host._molecule_objects())
+
         host.show()
         host.raise_()
         host.activateWindow()
