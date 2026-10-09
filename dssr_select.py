@@ -25,6 +25,7 @@ import json
 import re
 import tempfile
 import os
+import sys
 import math
 import bisect
 import time
@@ -45,7 +46,7 @@ for mod in ("pymol.Qt", "PyQt5", "PyQt6"):
 # Global Constants & Configuration Mappings
 # ---------------------------------------------------------------------------
 
-__DSSR_PLUGIN_VERSION__ = "v2.0.1"
+__DSSR_PLUGIN_VERSION__ = "v2.0.2"
 DSSR_TIMEOUT_SECONDS = 300  # Default timeout in seconds (5 minutes)
 DSSR_LARGE_STRUCTURE_THRESHOLD = 20000  # Atom count threshold for warning
 
@@ -55,7 +56,21 @@ DSSR_DEFAULT_SPLITTER_SIZES = [340, 940]  # splitter partition (sidebar vs. 2D s
 
 _HEX_COLOR_CACHE = {}
 
-_prev_dialog = globals().get("_DSSR_GUI_DIALOG")
+if QtWidgets is not None and QtWidgets.QApplication.instance() is not None:
+    for widget in QtWidgets.QApplication.topLevelWidgets():
+        if isinstance(widget, QtWidgets.QDialog) and (
+            widget.__class__.__name__ == "DssrGuiDialog"
+            or widget.windowTitle() == "DSSR RNA studio"
+        ):
+            try:
+                widget.close()
+                widget.deleteLater()
+            except Exception:
+                pass
+
+_prev_dialog = globals().get("_DSSR_GUI_DIALOG") or getattr(
+    cmd, "_DSSR_GUI_DIALOG", None
+)
 if _prev_dialog is not None:
     try:
         _prev_dialog.close()
@@ -63,7 +78,20 @@ if _prev_dialog is not None:
     except Exception:
         pass
 
+for _mod_name in ("pymol.plugins.dssr_select", "dssr_select"):
+    _mod = sys.modules.get(_mod_name)
+    if _mod is not None:
+        _mod_dialog = getattr(_mod, "_DSSR_GUI_DIALOG", None)
+        if _mod_dialog is not None:
+            try:
+                _mod_dialog.close()
+                _mod_dialog.deleteLater()
+            except Exception:
+                pass
+            setattr(_mod, "_DSSR_GUI_DIALOG", None)
+
 _DSSR_GUI_DIALOG = None
+cmd._DSSR_GUI_DIALOG = None
 _DSSR_BLOCK_OBJECTS = set()
 _DSSR_SELECTION_OBJECTS = set()
 _DSSR_DATA_CACHE = {"key": None, "data": None}
@@ -1614,6 +1642,7 @@ class DssrCmd:
         if _DSSR_GUI_DIALOG is None:
             _DSSR_GUI_DIALOG = DssrGuiDialog()
         host = _DSSR_GUI_DIALOG
+        cmd._DSSR_GUI_DIALOG = host
 
         # If selection is "all" or empty, resolve to the primary loaded molecule
         if not selection or selection == "all":
@@ -7643,7 +7672,10 @@ dssr_2d = DssrCmd.dssr_2d
 dssr_gui = DssrGuiDialog.dssr_gui
 
 for _command in (dssr_select, dssr_block, dssr_2d, dssr_gui):
-    cmd.extend(_command.__name__, _command)
+    _cmd_name = _command.__name__
+    if hasattr(cmd, "keyword") and _cmd_name in cmd.keyword:
+        del cmd.keyword[_cmd_name]
+    cmd.extend(_cmd_name, _command)
 
 try:
     for _name in ("dssr_select", "dssr_block", "dssr_2d"):
