@@ -164,7 +164,7 @@ LAYOUT_ALIASES = {
 }
 
 
-class DssrStyle:
+class DssrTheme:
     """Qt stylesheets and appearance definitions for the DSSR workspace."""
 
     LIGHT = """
@@ -324,9 +324,9 @@ QMenu::separator {
 """
 
     @staticmethod
-    def qss(is_dark=False):
+    def stylesheet(is_dark=False):
         """Return the appropriate stylesheet based on dark-mode toggle."""
-        return DssrStyle.DARK if is_dark else DssrStyle.LIGHT
+        return DssrTheme.DARK if is_dark else DssrTheme.LIGHT
 
 
 class DssrUtils:
@@ -1742,7 +1742,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         self.setWindowTitle("DSSR RNA studio")
         self.setWindowFlag(QtCore.Qt.WindowMinimizeButtonHint, True)
         self.resize(*DSSR_DEFAULT_WINDOW_SIZE)
-        self.setStyleSheet(DssrStyle.LIGHT)
+        self.setStyleSheet(DssrTheme.LIGHT)
         self.editor = None
         self._analysis_context = None
         self._cache_key = self._cache_data = None
@@ -1971,7 +1971,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
 
     def _set_dark_mode(self, is_dark):
         self.dark_btn.setText("Light" if is_dark else "Dark")
-        self.setStyleSheet(DssrStyle.qss(is_dark))
+        self.setStyleSheet(DssrTheme.stylesheet(is_dark))
         if self.editor is not None:
             self.editor.set_theme(is_dark)
 
@@ -6205,7 +6205,7 @@ class Dssr2DEditor(QtWidgets.QWidget):
 
     def set_theme(self, is_dark):
         self.is_dark = bool(is_dark)
-        self.setStyleSheet(DssrStyle.qss(is_dark))
+        self.setStyleSheet(DssrTheme.stylesheet(is_dark))
         bg = QtGui.QColor("#0f172a" if self.is_dark else "#ffffff")
         self.view.setBackgroundBrush(QtGui.QBrush(bg))
         seq_bg = "#0f172a" if self.is_dark else "#ffffff"
