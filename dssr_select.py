@@ -45,13 +45,15 @@ for mod in ("pymol.Qt", "PyQt5", "PyQt6"):
 # Global Constants & Configuration Mappings
 # ---------------------------------------------------------------------------
 
-__DSSR_PLUGIN_VERSION__ = "v2.0.1-dev"
+__DSSR_PLUGIN_VERSION__ = "v2.0.1"
 DSSR_TIMEOUT_SECONDS = 300  # Default timeout in seconds (5 minutes)
 DSSR_LARGE_STRUCTURE_THRESHOLD = 20000  # Atom count threshold for warning
 
 # Window geometry defaults
 DSSR_DEFAULT_WINDOW_SIZE = (1280, 800)  # GUI dimensions
 DSSR_DEFAULT_SPLITTER_SIZES = [340, 940]  # splitter partition (sidebar vs. 2D studio)
+
+_HEX_COLOR_CACHE = {}
 
 _prev_dialog = globals().get("_DSSR_GUI_DIALOG")
 if _prev_dialog is not None:
@@ -60,8 +62,6 @@ if _prev_dialog is not None:
         _prev_dialog.deleteLater()
     except Exception:
         pass
-
-_HEX_COLOR_CACHE = {}
 
 _DSSR_GUI_DIALOG = None
 _DSSR_BLOCK_OBJECTS = set()
