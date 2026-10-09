@@ -52,51 +52,7 @@ DSSR_LARGE_STRUCTURE_THRESHOLD = 20000  # Atom count threshold for warning
 
 # Window geometry defaults
 DSSR_DEFAULT_WINDOW_SIZE = (1280, 800)  # GUI dimensions
-DSSR_DEFAULT_SPLITTER_SIZES = [340, 940]  # splitter partition (sidebar vs. 2D studio)
-
-_HEX_COLOR_CACHE = {}
-
-
-def _teardown_existing_dialog():
-    """Close active GUI instances across Qt widgets, namespaces, and modules."""
-
-    def _safe_close(widget):
-        try:
-            widget.close()
-            widget.deleteLater()
-        except Exception:
-            pass
-
-    if QtWidgets is not None and QtWidgets.QApplication.instance() is not None:
-        for w in QtWidgets.QApplication.topLevelWidgets():
-            if isinstance(w, QtWidgets.QDialog) and (
-                w.__class__.__name__ == "DssrGuiDialog"
-                or w.windowTitle() == "DSSR RNA studio"
-            ):
-                _safe_close(w)
-
-    for ref in (
-        globals().get("_DSSR_GUI_DIALOG"),
-        getattr(cmd, "_DSSR_GUI_DIALOG", None),
-    ):
-        if ref is not None:
-            _safe_close(ref)
-
-    for mod_name in ("pymol.plugins.dssr_select", "dssr_select"):
-        mod = sys.modules.get(mod_name)
-        if mod and getattr(mod, "_DSSR_GUI_DIALOG", None):
-            _safe_close(mod._DSSR_GUI_DIALOG)
-            mod._DSSR_GUI_DIALOG = None
-
-
-_teardown_existing_dialog()
-
-_DSSR_GUI_DIALOG = None
-cmd._DSSR_GUI_DIALOG = None
-
-_DSSR_BLOCK_OBJECTS = set()
-_DSSR_SELECTION_OBJECTS = set()
-_DSSR_DATA_CACHE = {"key": None, "data": None}
+DSSR_DEFAULT_SPLITTER_SIZES = [340, 940]  # Splitter partition (sidebar vs. 2D studio)
 
 # DSSR structural feature mapping
 FEATURE_MAP = {
@@ -165,6 +121,7 @@ PYMOL_BASE_COLORS = {
         "border": "#a855f7",
     },
 }
+
 BLOCK_FEATURES = [
     "face",
     "edge",
@@ -192,6 +149,56 @@ LAYOUT_ALIASES = {
     "radial": "radiate",
     "tree": "radiate",
 }
+
+# ---------------------------------------------------------------------------
+# Runtime Session State & GUI Teardown
+# ---------------------------------------------------------------------------
+
+_DSSR_BLOCK_OBJECTS = set()
+_DSSR_SELECTION_OBJECTS = set()
+_DSSR_DATA_CACHE = {"key": None, "data": None}
+_HEX_COLOR_CACHE = {}
+
+
+def _teardown_existing_dialog():
+    """Close active GUI instances across Qt widgets, namespaces, and modules."""
+
+    def _safe_close(widget):
+        try:
+            widget.close()
+            widget.deleteLater()
+        except Exception:
+            pass
+
+    # 1. Close active window instances found in Qt's top-level widget registry
+    if QtWidgets is not None and QtWidgets.QApplication.instance() is not None:
+        for w in QtWidgets.QApplication.topLevelWidgets():
+            if isinstance(w, QtWidgets.QDialog) and (
+                w.__class__.__name__ == "DssrGuiDialog"
+                or w.windowTitle() == "DSSR RNA studio"
+            ):
+                _safe_close(w)
+
+    # 2. Clear references in current globals and shared cmd attribute
+    for ref in (
+        globals().get("_DSSR_GUI_DIALOG"),
+        getattr(cmd, "_DSSR_GUI_DIALOG", None),
+    ):
+        if ref is not None:
+            _safe_close(ref)
+
+    # 3. Clear references inside pre-imported plugin modules
+    for mod_name in ("pymol.plugins.dssr_select", "dssr_select"):
+        mod = sys.modules.get(mod_name)
+        if mod and getattr(mod, "_DSSR_GUI_DIALOG", None):
+            _safe_close(mod._DSSR_GUI_DIALOG)
+            mod._DSSR_GUI_DIALOG = None
+
+
+_teardown_existing_dialog()
+
+_DSSR_GUI_DIALOG = None
+cmd._DSSR_GUI_DIALOG = None
 
 
 class DssrTheme:
