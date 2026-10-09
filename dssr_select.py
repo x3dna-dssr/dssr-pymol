@@ -41,13 +41,17 @@ for mod in ("pymol.Qt", "PyQt5", "PyQt6"):
     except ImportError:
         pass
 
+# ---------------------------------------------------------------------------
+# Global Constants & Configuration Mappings
+# ---------------------------------------------------------------------------
+
 __DSSR_PLUGIN_VERSION__ = "v2.0.1-dev"
 DSSR_TIMEOUT_SECONDS = 300  # Default timeout in seconds (5 minutes)
 DSSR_LARGE_STRUCTURE_THRESHOLD = 20000  # Atom count threshold for warning
 
-# Default GUI dimensions and splitter partition (sidebar vs. 2D studio)
-DSSR_DEFAULT_WINDOW_SIZE = (1280, 800)
-DSSR_DEFAULT_SPLITTER_SIZES = [340, 940]
+# Window geometry defaults
+DSSR_DEFAULT_WINDOW_SIZE = (1280, 800)  # GUI dimensions
+DSSR_DEFAULT_SPLITTER_SIZES = [340, 940]  # splitter partition (sidebar vs. 2D studio)
 
 _prev_dialog = globals().get("_DSSR_GUI_DIALOG")
 if _prev_dialog is not None:
@@ -64,6 +68,7 @@ _DSSR_BLOCK_OBJECTS = set()
 _DSSR_SELECTION_OBJECTS = set()
 _DSSR_DATA_CACHE = {"key": None, "data": None}
 
+# DSSR structural feature mapping
 FEATURE_MAP = {
     "pairs": "pairs",
     "stems": "stems",
@@ -77,7 +82,6 @@ FEATURE_MAP = {
     "hairpins": "hairpins",
     "bulges": "bulges",
     "iloops": "iloops",
-    "internal": "iloops",
     "junctions": "junctions",
     "sssegments": "ssSegments",
     "multiplets": "multiplets",
@@ -86,7 +90,6 @@ FEATURE_MAP = {
     "gquadruplexes": "Gtetrads",
     "uturns": "Uturns",
 }
-
 FEATURE_ORDER = [
     "pairs",
     "stems",
@@ -108,7 +111,6 @@ FEATURE_ORDER = [
     "gquadruplexes",
     "uturns",
 ]
-
 FEATURE_LABELS = {
     "nonstack": "non-stack",
     "coaxstacks": "coax stacks",
@@ -120,7 +122,7 @@ FEATURE_LABELS = {
     "uturns": "U-turns",
 }
 
-# A = Red, C = Yellow/Amber, G = Green, U/T = Cyan
+# Base colors: A = Red, C = Yellow/Amber, G = Green, U/T = Cyan
 PYMOL_BASE_COLORS = {
     "A": {
         "text": "#b91c1c",
@@ -153,7 +155,6 @@ PYMOL_BASE_COLORS = {
         "border": "#a855f7",
     },
 }
-
 BLOCK_FEATURES = [
     "face",
     "edge",
@@ -167,8 +168,8 @@ BLOCK_FEATURES = [
     "hbond",
 ]
 
+# 2D Layout algorithms and aliases
 LAYOUT_CHOICES = ["standard", "circular", "linear", "radiate"]
-
 LAYOUT_ALIASES = {
     "standard": "standard",
     "naview": "standard",
@@ -991,7 +992,6 @@ class DssrParser:
             "hairpins",
             "bulges",
             "iloops",
-            "internal",
             "junctions",
             "sssegments",
             "multiplets",
@@ -1161,7 +1161,6 @@ class DssrParser:
             "nonstack",
             "bulges",
             "iloops",
-            "internal",
             "junctions",
             "sssegments",
             "multiplets",
