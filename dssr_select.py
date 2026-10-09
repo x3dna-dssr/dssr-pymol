@@ -182,7 +182,11 @@ LAYOUT_ALIASES = {
     "tree": "radiate",
 }
 
-LIGHT_THEME = """
+
+class DssrStyle:
+    """Qt stylesheets and appearance definitions for the DSSR workspace."""
+
+    LIGHT = """
 QDialog, QWidget#dssrWorkspace { background: #f1f5f9; color: #0f172a; }
 QMenu {
     background: #ffffff; color: #0f172a;
@@ -260,7 +264,7 @@ QMenu::separator {
 }
 """
 
-DARK_THEME = """
+    DARK = """
 QDialog, QWidget#dssrWorkspace { background: #0f172a; color: #f8fafc; }
 QMenu {
     background: #1e293b; color: #f8fafc;
@@ -337,6 +341,11 @@ QMenu::separator {
     margin: 4px 6px;
 }
 """
+
+    @staticmethod
+    def qss(is_dark=False):
+        """Return the appropriate stylesheet based on dark-mode toggle."""
+        return DssrStyle.DARK if is_dark else DssrStyle.LIGHT
 
 
 class DssrUtils:
@@ -1754,7 +1763,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         self.setWindowTitle("DSSR RNA studio")
         self.setWindowFlag(QtCore.Qt.WindowMinimizeButtonHint, True)
         self.resize(*DSSR_DEFAULT_WINDOW_SIZE)
-        self.setStyleSheet(LIGHT_THEME)
+        self.setStyleSheet(DssrStyle.LIGHT)
         self.editor = None
         self._analysis_context = None
         self._cache_key = self._cache_data = None
@@ -1983,7 +1992,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
 
     def _set_dark_mode(self, is_dark):
         self.dark_btn.setText("Light" if is_dark else "Dark")
-        self.setStyleSheet(DARK_THEME if is_dark else LIGHT_THEME)
+        self.setStyleSheet(DssrStyle.qss(is_dark))
         if self.editor is not None:
             self.editor.set_theme(is_dark)
 
@@ -6217,7 +6226,7 @@ class Dssr2DEditor(QtWidgets.QWidget):
 
     def set_theme(self, is_dark):
         self.is_dark = bool(is_dark)
-        self.setStyleSheet(DARK_THEME if self.is_dark else LIGHT_THEME)
+        self.setStyleSheet(DssrStyle.qss(is_dark))
         bg = QtGui.QColor("#0f172a" if self.is_dark else "#ffffff")
         self.view.setBackgroundBrush(QtGui.QBrush(bg))
         seq_bg = "#0f172a" if self.is_dark else "#ffffff"
