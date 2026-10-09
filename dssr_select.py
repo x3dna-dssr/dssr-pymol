@@ -653,7 +653,7 @@ class DssrUtils:
             return {
                 "text": QtGui.QColor("#0f172a"),
                 "fill": QtGui.QColor("#ffffff"),
-                "border": QtGui.QColor(30, 41, 59),
+                "border": QtGui.QColor("#1e293b"),
             }
         if b in PYMOL_BASE_COLORS:
             spec = PYMOL_BASE_COLORS[b]
