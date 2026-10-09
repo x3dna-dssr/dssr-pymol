@@ -56,42 +56,44 @@ DSSR_DEFAULT_SPLITTER_SIZES = [340, 940]  # splitter partition (sidebar vs. 2D s
 
 _HEX_COLOR_CACHE = {}
 
-if QtWidgets is not None and QtWidgets.QApplication.instance() is not None:
-    for widget in QtWidgets.QApplication.topLevelWidgets():
-        if isinstance(widget, QtWidgets.QDialog) and (
-            widget.__class__.__name__ == "DssrGuiDialog"
-            or widget.windowTitle() == "DSSR RNA studio"
-        ):
-            try:
-                widget.close()
-                widget.deleteLater()
-            except Exception:
-                pass
 
-_prev_dialog = globals().get("_DSSR_GUI_DIALOG") or getattr(
-    cmd, "_DSSR_GUI_DIALOG", None
-)
-if _prev_dialog is not None:
-    try:
-        _prev_dialog.close()
-        _prev_dialog.deleteLater()
-    except Exception:
-        pass
+def _teardown_existing_dialog():
+    """Close active GUI instances across Qt widgets, namespaces, and modules."""
 
-for _mod_name in ("pymol.plugins.dssr_select", "dssr_select"):
-    _mod = sys.modules.get(_mod_name)
-    if _mod is not None:
-        _mod_dialog = getattr(_mod, "_DSSR_GUI_DIALOG", None)
-        if _mod_dialog is not None:
-            try:
-                _mod_dialog.close()
-                _mod_dialog.deleteLater()
-            except Exception:
-                pass
-            setattr(_mod, "_DSSR_GUI_DIALOG", None)
+    def _safe_close(widget):
+        try:
+            widget.close()
+            widget.deleteLater()
+        except Exception:
+            pass
+
+    if QtWidgets is not None and QtWidgets.QApplication.instance() is not None:
+        for w in QtWidgets.QApplication.topLevelWidgets():
+            if isinstance(w, QtWidgets.QDialog) and (
+                w.__class__.__name__ == "DssrGuiDialog"
+                or w.windowTitle() == "DSSR RNA studio"
+            ):
+                _safe_close(w)
+
+    for ref in (
+        globals().get("_DSSR_GUI_DIALOG"),
+        getattr(cmd, "_DSSR_GUI_DIALOG", None),
+    ):
+        if ref is not None:
+            _safe_close(ref)
+
+    for mod_name in ("pymol.plugins.dssr_select", "dssr_select"):
+        mod = sys.modules.get(mod_name)
+        if mod and getattr(mod, "_DSSR_GUI_DIALOG", None):
+            _safe_close(mod._DSSR_GUI_DIALOG)
+            mod._DSSR_GUI_DIALOG = None
+
+
+_teardown_existing_dialog()
 
 _DSSR_GUI_DIALOG = None
 cmd._DSSR_GUI_DIALOG = None
+
 _DSSR_BLOCK_OBJECTS = set()
 _DSSR_SELECTION_OBJECTS = set()
 _DSSR_DATA_CACHE = {"key": None, "data": None}
