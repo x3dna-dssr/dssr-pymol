@@ -1902,9 +1902,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         left.addSpacing(10)
 
         self.filter_edit = QtWidgets.QLineEdit()
-        self.filter_edit.setPlaceholderText(
-            "Filter (e.g. canonical, !canonical, wc, Hoogsteen)..."
-        )
+        self._update_filter_placeholder()
         self.filter_edit.setClearButtonEnabled(True)
         self.filter_edit.textChanged.connect(self._on_filter_changed)
         left.addWidget(self.filter_edit)
@@ -2342,12 +2340,31 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
 
         self._current_feature = str(self.feature_combo.currentData() or "pairs")
 
+    def _update_filter_placeholder(self):
+        """Update placeholder text based on the active structural feature."""
+        feat = getattr(self, "_current_feature", "pairs")
+        hints = {
+            "pairs": "Filter (e.g. canonical, !canonical, wc, Hoogsteen)...",
+            "stems": "Filter stems (e.g. =4, pairs=4, !pairs=7)...",
+            "helices": "Filter helices (e.g. =4, pairs=4)...",
+            "hairpins": "Filter hairpins (e.g. size=4, !seq=)...",
+            "bulges": "Filter bulges (e.g. size=1)...",
+            "iloops": "Filter internal loops (e.g. size=...)...",
+            "junctions": "Filter junctions (e.g. 4-way, stems=4)...",
+            "pseudoknot": "Filter pseudoknots (e.g. layer A)...",
+        }
+        self.filter_edit.setPlaceholderText(
+            hints.get(feat, f"Filter {feat} (text match, !negation)...")
+        )
+
     def _on_feature_changed(self, *_args):
         self._current_feature = str(self.feature_combo.currentData() or "pairs")
-        self.filter_edit.blockSignals(True)
-        self.filter_edit.clear()
-        self.filter_edit.blockSignals(False)
         self.details_box.clear()
+        if self.filter_edit.text():
+            self.filter_edit.blockSignals(True)
+            self.filter_edit.clear()
+            self.filter_edit.blockSignals(False)
+        self._update_filter_placeholder()
         self._refresh_list()
 
     def _refresh_list(self):
