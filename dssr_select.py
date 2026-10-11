@@ -896,6 +896,16 @@ class DssrParser:
         return DssrParser._residue_selection(residues)
 
     @staticmethod
+    def build_selection_from_nts_long(entry, feature=""):
+        """Build a residue selection from any DSSR entry containing an nts_long field."""
+        nts_long = entry.get("nts_long", "")
+        if not nts_long:
+            label = feature if feature else "Structural motif"
+            raise CmdException("%s entry missing nts_long field" % label)
+        nts_list = [nt.strip() for nt in nts_long.split(",") if nt.strip()]
+        return DssrParser.build_selection_from_nts_list(nts_list)
+
+    @staticmethod
     def _pair_residues(pairs):
         return {
             DssrParser.parse_nt_id(pair[key])
@@ -910,14 +920,6 @@ class DssrParser:
         if not pairs:
             raise CmdException("Stem has no pairs")
         return DssrParser._residue_selection(DssrParser._pair_residues(pairs))
-
-    @staticmethod
-    def build_selection_from_hairpin(hairpin_entry):
-        nts_long = hairpin_entry.get("nts_long")
-        if not nts_long:
-            raise CmdException("Hairpin missing nts_long field")
-        nts_list = [nt.strip() for nt in nts_long.split(",") if nt.strip()]
-        return DssrParser.build_selection_from_nts_list(nts_list)
 
     @staticmethod
     def build_selection_from_coaxstack(coax_entry, stems_list):
@@ -973,15 +975,6 @@ class DssrParser:
         if not nts:
             raise CmdException("Aminors entry has empty residues")
         return DssrParser.build_selection_from_nts_list(nts)
-
-    @staticmethod
-    def build_selection_from_gquadruplex(gquad_entry):
-        nts_long = gquad_entry.get("nts_long", "")
-        nts_list = [nt.strip() for nt in nts_long.split(",") if nt.strip()]
-        return DssrParser.build_selection_from_nts_list(nts_list)
-
-    # Both annotations store their residues in the same nts_long field.
-    build_selection_from_uturns = build_selection_from_gquadruplex
 
     @staticmethod
     def _shorten_nts_long(nts_long, max_items=6):
@@ -1200,41 +1193,35 @@ class DssrParser:
 
         entry = feature_list[idx - 1]
 
+        # Custom entry structures
         builders = {
             "pairs": DssrParser.build_selection_from_pair,
             "stems": DssrParser.build_selection_from_stem,
             "helices": DssrParser.build_selection_from_stem,
-            "hairpins": DssrParser.build_selection_from_hairpin,
+            "coaxstacks": lambda e: DssrParser.build_selection_from_coaxstack(
+                e, dssr_data.get("stems", [])
+            ),
             "atom2bases": DssrParser.build_selection_from_atom2base,
             "aminors": DssrParser.build_selection_from_aminor,
-            "gquadruplexes": DssrParser.build_selection_from_gquadruplex,
-            "uturns": DssrParser.build_selection_from_uturns,
         }
         if feature in builders:
             return builders[feature](entry)
 
+        # Standard motifs storing residues in nts_long
         if feature in (
-            "stacks",
-            "nonstack",
+            "hairpins",
             "bulges",
             "iloops",
             "junctions",
+            "stacks",
+            "nonstack",
             "sssegments",
             "multiplets",
             "splayunits",
+            "gquadruplexes",
             "uturns",
         ):
-            nts_long = entry.get("nts_long", "")
-            if not nts_long:
-                raise CmdException("%s entry missing nts_long field" % feature)
-            nts_list_parsed = [nt.strip() for nt in nts_long.split(",") if nt.strip()]
-            return DssrParser.build_selection_from_nts_list(nts_list_parsed)
-
-        if feature == "coaxstacks":
-            stems_list = dssr_data.get("stems", [])
-            if not stems_list:
-                raise CmdException("No stems found, required for coaxStacks")
-            return DssrParser.build_selection_from_coaxstack(entry, stems_list)
+            return DssrParser.build_selection_from_nts_long(entry, feature)
 
         if feature == "nts":
             nt_id = entry.get("nt_id")
