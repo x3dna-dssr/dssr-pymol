@@ -90,6 +90,11 @@ FEATURE_LABELS = {
     "gquadruplexes": "G-tetrads",
     "uturns": "U-turns",
 }
+FEATURE_ALIASES = {
+    "pk": "pseudoknots",
+    "pknots": "pseudoknots",
+    "pseudoknot": "pseudoknots",
+}
 
 # Base colors: A = Red, C = Yellow/Amber, G = Green, U/T = Cyan
 PYMOL_BASE_COLORS = {
@@ -730,7 +735,7 @@ class DssrParser:
         """
         if not isinstance(dssr_data, dict):
             return []
-        feature = str(feature).strip()
+        feature = FEATURE_ALIASES.get(str(feature).strip(), str(feature).strip())
         json_key = FEATURE_MAP.get(feature)
         if not json_key:
             return []
@@ -1145,6 +1150,7 @@ class DssrParser:
     @staticmethod
     def _build_residue_sel_from_dssr(dssr_data, feature, index):
         feature = str(feature).lower().strip()
+        feature = FEATURE_ALIASES.get(feature, feature)
         idx = int(index)
 
         if feature == "pseudoknots":
@@ -1300,6 +1306,7 @@ class DssrCmd:
         quiet = int(quiet)
         precolor = int(precolor)
         feature = DssrUtils.unquote(feature).lower().strip()
+        feature = FEATURE_ALIASES.get(feature, feature)
 
         user_color = DssrUtils._resolve_color_spec(DssrUtils.unquote(color).strip())
 
@@ -7815,6 +7822,11 @@ try:
         cmd.auto_arg[0][_name] = cmd.auto_arg[0]["zoom"]
     cmd.auto_arg[2]["dssr_block"] = [cmd.Shortcut(BLOCK_FEATURES), "block_file", ""]
     cmd.auto_arg[2]["dssr_2d"] = [cmd.Shortcut(LAYOUT_CHOICES), "layout", ""]
+    cmd.auto_arg[2]["dssr_select"] = [
+        cmd.Shortcut(FEATURE_ORDER + list(FEATURE_ALIASES.keys())),
+        "feature",
+        "",
+    ]
 except (AttributeError, KeyError):
     pass
 
