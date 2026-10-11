@@ -86,9 +86,34 @@ FEATURE_LABELS = {
     "uturns": "U-turns",
 }
 FEATURE_ALIASES = {
+    # Pseudoknots
     "pk": "pseudoknots",
     "pknots": "pseudoknots",
     "pseudoknot": "pseudoknots",
+    # Domain shorthands
+    "g4": "gquadruplexes",
+    "gtetrad": "gquadruplexes",
+    "gtetrads": "gquadruplexes",
+    "internal": "iloops",
+    "iloop": "iloops",
+    "coax": "coaxstacks",
+    "a2b": "atom2bases",
+    "aminor": "aminors",
+    "a-minor": "aminors",
+    "uturn": "uturns",
+    "u-turn": "uturns",
+    "splay": "splayunits",
+    "ss": "sssegments",
+    # Singular noun fallbacks
+    "pair": "pairs",
+    "stem": "stems",
+    "helix": "helices",
+    "hairpin": "hairpins",
+    "bulge": "bulges",
+    "junction": "junctions",
+    "stack": "stacks",
+    "multiplet": "multiplets",
+    "nt": "nts",
 }
 
 # Base colors: A = Red, C = Yellow/Amber, G = Green, U/T = Cyan
