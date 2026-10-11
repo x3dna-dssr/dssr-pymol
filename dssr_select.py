@@ -419,6 +419,12 @@ class DssrUtils:
         return resolved if resolved in LAYOUT_CHOICES else "standard"
 
     @staticmethod
+    def normalize_feature(feature):
+        """Normalize structural feature name against aliases and casing."""
+        raw = DssrUtils.unquote(str(feature or "")).strip().lower()
+        return FEATURE_ALIASES.get(raw, raw)
+
+    @staticmethod
     def _run_dssr(args, operation="DSSR", timeout=DSSR_TIMEOUT_SECONDS):
         """Run either annotation or block generation with timeout and error handling."""
         try:
@@ -735,7 +741,7 @@ class DssrParser:
         """
         if not isinstance(dssr_data, dict):
             return []
-        feature = FEATURE_ALIASES.get(str(feature).strip(), str(feature).strip())
+        feature = DssrUtils.normalize_feature(feature)
         json_key = FEATURE_MAP.get(feature)
         if not json_key:
             return []
@@ -1094,6 +1100,7 @@ class DssrParser:
         """Extract total item count for any DSSR feature safely."""
         if not isinstance(dssr_data, dict):
             return 0
+        feature = DssrUtils.normalize_feature(feature)
         if feature == "pseudoknots":
             return DssrParser._count_pseudoknot_layers(dssr_data)
 
@@ -1149,8 +1156,7 @@ class DssrParser:
 
     @staticmethod
     def _build_residue_sel_from_dssr(dssr_data, feature, index):
-        feature = str(feature).lower().strip()
-        feature = FEATURE_ALIASES.get(feature, feature)
+        feature = DssrUtils.normalize_feature(feature)
         idx = int(index)
 
         if feature == "pseudoknots":
@@ -1305,8 +1311,7 @@ class DssrCmd:
         show_info = int(show_info)
         quiet = int(quiet)
         precolor = int(precolor)
-        feature = DssrUtils.unquote(feature).lower().strip()
-        feature = FEATURE_ALIASES.get(feature, feature)
+        feature = DssrUtils.normalize_feature(feature)
 
         user_color = DssrUtils._resolve_color_spec(DssrUtils.unquote(color).strip())
 
