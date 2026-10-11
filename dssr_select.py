@@ -1004,11 +1004,12 @@ class DssrParser:
             tag_str = (" (%s)" % ", ".join(tags)) if tags else ""
             return "%d: %s - %s%s" % (i, nt1, nt2, tag_str)
 
-        if feature in ("stems", "helices"):
+        if feature in ("stems", "helices", "pseudoknots"):
+            pairs = entry.get("pairs", [])
             n = (
-                len(entry.get("pairs", []))
-                if isinstance(entry.get("pairs", []), list)
-                else 0
+                len(pairs)
+                if isinstance(pairs, list)
+                else int(entry.get("pair_count", 0))
             )
             return "%d: pairs=%d" % (i, n)
 
@@ -1298,12 +1299,15 @@ class DssrCmd:
             # Select hairpin #1 and assign a custom selection name
             dssr_select 1ehz, hairpins, 1, name=loop1
         """
-        # Support both formal convention (dssr_select sele, state, feature, index)
-        # and natural shorthand (dssr_select sele, feature, index)
+        # Support formal (dssr_select sele, state, feature, index)
+        # and shorthand (dssr_select sele, feature [, index])
         try:
             state = int(state)
         except (ValueError, TypeError):
-            index = feature
+            try:
+                index = int(feature)
+            except (ValueError, TypeError):
+                index = 1
             feature = state
             state = -1
 
