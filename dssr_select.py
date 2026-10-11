@@ -770,7 +770,7 @@ class DssrParser:
 
     @staticmethod
     def parse_dotbracket_pseudoknots(dotbracket):
-        """Return noncanonical bracket/letter layers; separators consume no index."""
+        """Return matched pairing bracket/letter layers; separators consume no index."""
         openers = "([{<"
         closer_to_open = dict(
             zip(
@@ -1159,12 +1159,12 @@ class DssrParser:
 
             layers = DssrParser.parse_dotbracket_pseudoknots(dotbracket)
             if not layers:
-                raise CmdException("No pseudoknot layers found")
+                raise CmdException("No pseudoknots found")
 
             layer_keys = sorted(layers.keys())
             if idx < 1 or idx > len(layer_keys):
                 raise CmdException(
-                    "pseudoknot layer index %d out of range (1..%d)"
+                    "pseudoknot order index %d out of range (1..%d)"
                     % (idx, len(layer_keys))
                 )
 
@@ -1172,7 +1172,7 @@ class DssrParser:
             sel_str = DssrParser.build_selection_from_layer(pairs, nts_list)
             if not sel_str:
                 raise CmdException(
-                    "Could not build selection for pseudoknot layer %d" % idx
+                    "Could not build selection for pseudoknot order %d" % idx
                 )
             return sel_str
 
@@ -1522,7 +1522,7 @@ class DssrCmd:
 
             layers = DssrParser.parse_dotbracket_pseudoknots(dotbracket)
             if not layers:
-                raise CmdException("No pseudoknot layers found in structure")
+                raise CmdException("No pseudoknots found in structure")
 
             layer_keys = sorted(layers.keys())
 
@@ -1538,7 +1538,7 @@ class DssrCmd:
 
             if index < 1 or index > len(layer_keys):
                 raise CmdException(
-                    "Layer index %d out of range (1..%d)" % (index, len(layer_keys))
+                    "Order index %d out of range (1..%d)" % (index, len(layer_keys))
                 )
 
             layer_key = layer_keys[index - 1]
@@ -1547,7 +1547,7 @@ class DssrCmd:
 
             sel_str = DssrParser.build_selection_from_layer(pairs, nts_list)
             if sel_str is None:
-                raise CmdException("Could not build selection for layer %d" % index)
+                raise CmdException("Could not build selection for order %d" % index)
 
             DssrCmd._create_feature_selection(name, selection, sel_str, quiet=quiet)
             cmd.color(user_color if user_color else layer_color, name)
@@ -3235,8 +3235,7 @@ class Dssr2DModel:
                 )
                 continue
 
-            # Extended Vienna notation: A..a, B..b, ... represent additional
-            # pseudoknot layers.
+            # Extended Vienna notation: A..a, B..b, ... represent additional pseudoknot layers.
             if "A" <= char <= "Z":
                 stacks.setdefault(char, []).append(idx)
                 if char not in letter_layers:
