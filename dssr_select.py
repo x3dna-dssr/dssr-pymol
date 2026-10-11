@@ -1528,7 +1528,6 @@ class DssrCmd:
         quiet=1,
     ):
         """Create a feature selection from already analyzed DSSR data."""
-        json_key = FEATURE_MAP[feature]
         if feature == "pseudoknots":
             layer_colors = ["blue", "pink", "green", "yellow", "orange"]
 
@@ -1538,10 +1537,7 @@ class DssrCmd:
                 raise CmdException("No nts found in DSSR output")
 
             layers = DssrParser.parse_dotbracket_pseudoknots(dotbracket)
-            if not layers:
-                raise CmdException("No pseudoknots found in structure")
-
-            layer_keys = sorted(layers.keys())
+            layer_keys = sorted(layers.keys()) if layers else []
 
             if index == 0:
                 print("pseudoknots: %d order(s)" % len(layer_keys))
@@ -1551,6 +1547,10 @@ class DssrCmd:
                     )
                 if not quiet and show_info:
                     print("pseudoknots dot-bracket: " + str(dotbracket))
+                return
+
+            if not layers:
+                print("dssr_select: no pseudoknots detected in structure")
                 return
 
             if index < 1 or index > len(layer_keys):
@@ -1577,18 +1577,25 @@ class DssrCmd:
             return
 
         feature_list = DssrParser.feature_entries(dssr_data, feature)
-        if not feature_list:
-            raise CmdException('No "%s" found in DSSR output' % json_key)
 
         if index == 0:
             total = len(feature_list)
             print("%s: %d item(s)" % (feature, total))
-            show_n = 20 if not quiet else 10
-            show_n = min(show_n, total)
-            for i in range(show_n):
-                print("  " + DssrParser._preview_entry(feature, feature_list[i], i + 1))
-            if total > show_n:
-                print("  ... (%d more)" % (total - show_n))
+            if total > 0:
+                show_n = 20 if not quiet else 10
+                show_n = min(show_n, total)
+                for i in range(show_n):
+                    print(
+                        "  "
+                        + DssrParser._preview_entry(feature, feature_list[i], i + 1)
+                    )
+                if total > show_n:
+                    print("  ... (%d more)" % (total - show_n))
+            return
+
+        if not feature_list:
+            label = FEATURE_LABELS.get(feature, feature)
+            print("dssr_select: no %s detected in structure" % label)
             return
 
         if index < 1 or index > len(feature_list):
