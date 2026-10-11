@@ -1087,32 +1087,61 @@ class DssrParser:
             return 0
 
     @staticmethod
-    def _format_rna_summary_text(dssr_data):
+    def _feature_count(dssr_data, feature):
+        """Extract total item count for any DSSR feature safely."""
+        if not isinstance(dssr_data, dict):
+            return 0
+        if feature == "pseudoknot":
+            return DssrParser._count_pseudoknot_layers(dssr_data)
+
+        json_key = FEATURE_MAP.get(feature, feature)
+        val = dssr_data.get(json_key)
+        if val is None:
+            return 0
+        if isinstance(val, list):
+            return len(val)
+        if isinstance(val, dict):
+            if "num_nts" in val:
+                return int(val.get("num_nts", 0))
+            if "nts_long" in val:
+                return len([x for x in val["nts_long"].split(",") if x.strip()])
+            return 1
+        return 0
+
+    @staticmethod
+    def _format_summary_text(dssr_data):
         chains = DssrParser._extract_chain_names(dssr_data)
         lines = [
-            "RNA Structure Summary",
-            "---------------------",
+            "Structure Summary",
+            "-----------------",
             "Chains: %s" % (" ".join(chains) if chains else "(unknown)"),
         ]
-        for label, key in (
+
+        summary_features = (
+            ("Nucleotides", "nts"),
             ("Base pairs", "pairs"),
+            ("Helices", "helices"),
             ("Stems", "stems"),
+            ("Coaxial stacks", "coaxstacks"),
+            ("Multiplets", "multiplets"),
+            ("Pseudoknots", "pseudoknot"),
             ("Hairpins", "hairpins"),
             ("Bulges", "bulges"),
+            ("Internal loops", "iloops"),
             ("Junctions", "junctions"),
-            ("Pseudoknots", None),
-            ("A-minor motifs", "Aminors"),
             ("Base stacks", "stacks"),
-            ("G-quadruplexes", "Gtetrads"),
-            ("U-turns", "Uturns"),
-        ):
-            entries = dssr_data.get(key) if key else None
-            count = (
-                (len(entries) if isinstance(entries, list) else 0)
-                if key
-                else (DssrParser._count_pseudoknot_layers(dssr_data))
-            )
+            ("Non-stacking nts", "nonstack"),
+            ("A-minor motifs", "aminors"),
+            ("G-quadruplexes", "gquadruplexes"),
+            ("U-turns", "uturns"),
+            ("Splayed-apart units", "splayunits"),
+            ("Atom-base stacks", "atom2bases"),
+        )
+
+        for label, feat in summary_features:
+            count = DssrParser._feature_count(dssr_data, feat)
             lines.append("%s: %d" % (label, count))
+
         return "\n".join(lines)
 
     @staticmethod
@@ -2304,7 +2333,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
             self.editor.view.setFocus(QtCore.Qt.OtherFocusReason)
         self._update_feature_counts(data)
         self._refresh_list()
-        self.report_box.setPlainText(DssrParser._format_rna_summary_text(data))
+        self.report_box.setPlainText(DssrParser._format_summary_text(data))
         self.data_tabs.setCurrentWidget(self.report_box)
         self.status_label.setText("%s | %s" % (selection, model.summary()))
         QtCore.QTimer.singleShot(50, self.editor.fit_scene)
