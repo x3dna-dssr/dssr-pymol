@@ -2366,7 +2366,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
                     DssrParser._extract_dotbracket(data)
                 )
                 self._items_all = [
-                    (i, "%d: layer %s, %d pairs" % (i, key, len(layers[key])))
+                    (i, "%d: pairs=%d" % (i, len(layers[key])))
                     for i, key in enumerate(sorted(layers), 1)
                 ]
             else:
