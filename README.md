@@ -91,7 +91,7 @@ Examples:
 #### 3. Stylized Base Blocks (`dssr_block`)
 Syntax: `dssr_block [ selection [, state [, block_file [, block_depth [, block_color [, name [, exe ]]]]]]]`
 
-Supported styles (`block_file`): `face`, `edge`, `wc`, `g4`, `imotif`, `minor`, `equal`, etc.
+Supported styles (`block_file`): `face`, `edge`, `wc`, `g4`, `minor`, `equal`, etc.
 
 Examples:
 * `dssr_block 1ehz`

@@ -130,7 +130,6 @@ BLOCK_FEATURES = [
     "edge",
     "wc",
     "g4",
-    "imotif",
     "equal",
     "minor",
     "gray",
@@ -1410,7 +1409,7 @@ class DssrCmd:
 
             state = int: object state (0 for all states) {default: -1, current state}
 
-            block_file = face|edge|wc|g4|imotif|equal|minor|gray|fill|hbond:
+            block_file = face|edge|wc|g4|equal|minor|gray|fill|hbond:
                          Corresponds to the --block-file option (see DSSR manual).
                          Values can be combined, e.g. "wc-minor". {default: face}
 
@@ -1866,7 +1865,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         self.block_file_combo.setMinimumWidth(110)
         self.block_file_combo.view().setMinimumWidth(130)
         self.block_file_combo.setToolTip(
-            "Block cartoon style: face, edge, wc, g4, imotif, minor, etc.\n"
+            "Block cartoon style: face, edge, wc, g4, minor, etc.\n"
             "Styles can be typed and combined (e.g., wc-minor)."
         )
         top.addWidget(self.block_file_combo)
