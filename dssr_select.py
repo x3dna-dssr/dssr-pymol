@@ -1524,13 +1524,13 @@ class DssrCmd:
             layer_keys = sorted(layers.keys())
 
             if index == 0:
-                print("pseudoknot: %d layer(s)" % len(layer_keys))
+                print("pseudoknots: %d order(s)" % len(layer_keys))
                 for j, k in enumerate(layer_keys, 1):
                     print(
-                        "  layer %d (key=%s): %d pair(s)" % (j, str(k), len(layers[k]))
+                        "  order %d (key=%s): %d pair(s)" % (j, str(k), len(layers[k]))
                     )
                 if not quiet and show_info:
-                    print("pseudoknot dot-bracket: " + str(dotbracket))
+                    print("pseudoknots dot-bracket: " + str(dotbracket))
                 return
 
             if index < 1 or index > len(layer_keys):
@@ -1551,7 +1551,7 @@ class DssrCmd:
 
             if not quiet:
                 print(
-                    'dssr_select: selection "%s" pseudoknot order %d with %d pair(s)'
+                    'dssr_select: selection "%s" pseudoknots order %d with %d pair(s)'
                     % (name, index, len(pairs))
                 )
             return
