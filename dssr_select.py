@@ -1157,6 +1157,7 @@ class DssrParser:
             ("U-turns", "uturns"),
             ("Splayed-apart units", "splayunits"),
             ("Atom-base stacks", "atom2bases"),
+            ("Single-stranded segments", "sssegments"),
         )
 
         for label, feat in summary_features:
