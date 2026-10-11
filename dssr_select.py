@@ -5987,7 +5987,7 @@ class Dssr2DGraphicsView(QtWidgets.QGraphicsView):
 
 
 class Dssr2DSequenceView(QtWidgets.QTextEdit):
-    """One text document for the sequence, real residue ruler, and linked selection."""
+    """One text document for residue ruler, 1D sequence, DBN secondary structure, and linked selection."""
 
     def __init__(self, editor):
         super().__init__(editor)
@@ -5997,6 +5997,8 @@ class Dssr2DSequenceView(QtWidgets.QTextEdit):
         self._gesture_base = set()
         self._gesture_toggle = False
         self._letter_colors = None
+        self._dbn_spans = []
+        self._dbn_starts = []
         self.setReadOnly(True)
         self.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
@@ -6010,16 +6012,18 @@ class Dssr2DSequenceView(QtWidgets.QTextEdit):
         font.setFamilies(["Menlo", "Monaco", "Courier New", "DejaVu Sans Mono"])
         self.setFont(font)
         self.document().setDocumentMargin(8)
+        # Height scaled to accommodate 3 rows: Ruler, Sequence, and DBN
         self.setFixedHeight(
-            self.fontMetrics().height() * 2
-            + 16
+            self.fontMetrics().height() * 3
+            + 18
             + self.style().pixelMetric(QtWidgets.QStyle.PM_ScrollBarExtent)
         )
         self.setStyleSheet(
             "QTextEdit { background: white; color: #64748b; border: 1px solid #dce5ea; border-radius: 5px; }"
         )
         self.setToolTip(
-            "Sequence: click or drag a range · Shift: extend · Ctrl: toggle\nNumbers are PyMOL residue IDs; hover for the original DSSR identifier."
+            "Sequence & secondary structure (DBN): click or drag a range · Shift: extend · Ctrl: toggle\n"
+            "Numbers are PyMOL residue IDs; hover for original DSSR identifier."
         )
         self._build_document()
         self.set_letter_colors(editor.base_colors)
@@ -6029,9 +6033,11 @@ class Dssr2DSequenceView(QtWidgets.QTextEdit):
         return len(text.encode("utf-16-le")) // 2
 
     def _build_document(self):
-        parts, spans, rulers = [], [], []
+        parts, dbn_parts, spans, rulers = [], [], [], []
         character_offset = document_offset = 0
         nts, breaks = self.editor.model.nts, self.editor.model.chain_breaks
+        struct = getattr(self.editor.model, "structure", "")
+
         for index, nt in enumerate(nts):
             chain_start = index == 0 or index - 1 in breaks
             prefix = (
@@ -6040,19 +6046,30 @@ class Dssr2DSequenceView(QtWidgets.QTextEdit):
                 else " "
             )
             parts.append(prefix)
+            dbn_prefix = " " * len(prefix)
+            dbn_parts.append(dbn_prefix)
+
             character_offset += len(prefix)
             document_offset += self._text_length(prefix)
+
             base = str(nt.get("base", ""))
+            dbn_char = struct[index] if index < len(struct) else "."
+
             start = document_offset
             parts.append(base)
+            dbn_parts.append(dbn_char)
+
             document_offset += self._text_length(base)
             spans.append((start, document_offset))
+
             if chain_start or (index + 1) % 10 == 0 or index == len(nts) - 1:
                 residue = str(nt.get("resi", "")).strip()
                 if residue:
                     rulers.append((character_offset, residue))
             character_offset += len(base)
+
         sequence = "".join(parts)
+        dbn_line = "".join(dbn_parts)
         ruler = [" "] * len(sequence)
         occupied = -1
         for start, label in rulers:
@@ -6064,15 +6081,58 @@ class Dssr2DSequenceView(QtWidgets.QTextEdit):
             ruler[start:end] = label
             occupied = end
         ruler = "".join(ruler)
-        self.setPlainText(ruler + "\n" + sequence)
-        offset = self._text_length(ruler) + 1
-        self._spans = [(start + offset, end + offset) for start, end in spans]
+
+        # 3-track composite document: Ruler \n Sequence \n DBN
+        self.setPlainText(ruler + "\n" + sequence + "\n" + dbn_line)
+
+        seq_offset = self._text_length(ruler) + 1
+        dbn_offset = seq_offset + self._text_length(sequence) + 1
+
+        self._spans = [(start + seq_offset, end + seq_offset) for start, end in spans]
         self._starts = [start for start, _end in self._spans]
+
+        self._dbn_spans = [
+            (start + dbn_offset, end + dbn_offset) for start, end in spans
+        ]
+        self._dbn_starts = [start for start, _end in self._dbn_spans]
+
+        self._style_dbn()
+
+    def _style_dbn(self):
+        """Syntax color DBN characters matching the 2D canvas palette."""
+        is_dark = getattr(self.editor, "is_dark", False)
+        cursor = QtGui.QTextCursor(self.document())
+        cursor.beginEditBlock()
+        struct = getattr(self.editor.model, "structure", "")
+
+        for i, (start, end) in enumerate(self._dbn_spans):
+            ch = struct[i] if i < len(struct) else "."
+            cursor.setPosition(start)
+            cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
+            fmt = QtGui.QTextCharFormat()
+
+            if ch in "()":
+                # Canonical base pairs: royal blue / sky blue
+                fmt.setForeground(QtGui.QColor("#38bdf8" if is_dark else "#0284c7"))
+                fmt.setFontWeight(QtGui.QFont.Bold)
+            elif ch in "[]{}<>":
+                # Pseudoknot layers: purple (matches 2D canvas pseudoknot arcs)
+                fmt.setForeground(QtGui.QColor("#c084fc" if is_dark else "#9333ea"))
+                fmt.setFontWeight(QtGui.QFont.Bold)
+            elif ch.isalpha():
+                # Extended pseudoknot notation: magenta
+                fmt.setForeground(QtGui.QColor("#f472b6" if is_dark else "#db2777"))
+                fmt.setFontWeight(QtGui.QFont.Bold)
+            else:
+                # Unpaired bases: muted slate
+                fmt.setForeground(QtGui.QColor("#64748b" if is_dark else "#94a3b8"))
+                fmt.setFontWeight(QtGui.QFont.Normal)
+
+            cursor.setCharFormat(fmt)
+        cursor.endEditBlock()
 
     def set_letter_colors(self, enabled):
         enabled = bool(enabled)
-        if enabled == self._letter_colors:
-            return
         self._letter_colors = enabled
         cursor = QtGui.QTextCursor(self.document())
         cursor.beginEditBlock()
@@ -6084,6 +6144,7 @@ class Dssr2DSequenceView(QtWidgets.QTextEdit):
             style.setFontWeight(QtGui.QFont.Bold)
             cursor.setCharFormat(style)
         cursor.endEditBlock()
+        self._style_dbn()
 
     def set_selected_indices(self, indices):
         wanted = frozenset(index for index in indices if 0 <= index < len(self._spans))
@@ -6102,21 +6163,41 @@ class Dssr2DSequenceView(QtWidgets.QTextEdit):
         fg_color = QtGui.QColor("#ffffff")
 
         for first, last in groups:
-            selection = QtWidgets.QTextEdit.ExtraSelection()
-            selection.cursor = QtGui.QTextCursor(self.document())
-            selection.cursor.setPosition(self._spans[first][0])
-            selection.cursor.setPosition(
+            # Highlight sequence base
+            sel_seq = QtWidgets.QTextEdit.ExtraSelection()
+            sel_seq.cursor = QtGui.QTextCursor(self.document())
+            sel_seq.cursor.setPosition(self._spans[first][0])
+            sel_seq.cursor.setPosition(
                 self._spans[last][1], QtGui.QTextCursor.KeepAnchor
             )
-            selection.format.setBackground(bg_color)
-            selection.format.setForeground(fg_color)
-            selections.append(selection)
+            sel_seq.format.setBackground(bg_color)
+            sel_seq.format.setForeground(fg_color)
+            selections.append(sel_seq)
+
+            # Highlight corresponding DBN structure character
+            sel_dbn = QtWidgets.QTextEdit.ExtraSelection()
+            sel_dbn.cursor = QtGui.QTextCursor(self.document())
+            sel_dbn.cursor.setPosition(self._dbn_spans[first][0])
+            sel_dbn.cursor.setPosition(
+                self._dbn_spans[last][1], QtGui.QTextCursor.KeepAnchor
+            )
+            sel_dbn.format.setBackground(bg_color)
+            sel_dbn.format.setForeground(fg_color)
+            selections.append(sel_dbn)
+
         self.setExtraSelections(selections)
 
     def _index_at(self, position):
         offset = self.cursorForPosition(position).position()
+        # Resolve clicks on sequence row
         index = bisect.bisect_right(self._starts, offset) - 1
-        return index if index >= 0 and offset <= self._spans[index][1] else None
+        if index >= 0 and offset <= self._spans[index][1]:
+            return index
+        # Resolve clicks on DBN row
+        dbn_idx = bisect.bisect_right(self._dbn_starts, offset) - 1
+        if dbn_idx >= 0 and offset <= self._dbn_spans[dbn_idx][1]:
+            return dbn_idx
+        return None
 
     def _apply_range(self, index):
         indices = set(
@@ -6151,10 +6232,13 @@ class Dssr2DSequenceView(QtWidgets.QTextEdit):
         index = self._index_at(event.pos())
         if index is not None:
             nt = self.editor.model.nts[index]
+            struct = getattr(self.editor.model, "structure", "")
+            dbn_ch = struct[index] if index < len(struct) else "."
             self.viewport().setToolTip(
-                "%s · %s\n%s"
+                "%s (%s) · %s\n%s"
                 % (
                     nt.get("base", ""),
+                    dbn_ch,
                     nt.get("name", ""),
                     nt.get("nt_id")
                     or "Sequence position %d; no DSSR residue identifier" % (index + 1),
