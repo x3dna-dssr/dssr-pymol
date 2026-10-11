@@ -75,7 +75,7 @@ FEATURE_MAP = {
     "gquadruplexes": "Gtetrads",
     "uturns": "Uturns",
     "splayunits": "splayUnits",
-    "pseudoknots": "pseudoknot",
+    "pseudoknots": "pseudoknots",
     "nts": "nts",
     "sssegments": "ssSegments",
 }
