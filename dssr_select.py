@@ -75,7 +75,6 @@ FEATURE_MAP = {
     "gquadruplexes": "Gtetrads",
     "uturns": "Uturns",
     "splayunits": "splayUnits",
-    "pseudoknot": "pseudoknot",
     "pseudoknots": "pseudoknot",
     "nts": "nts",
     "sssegments": "ssSegments",
@@ -90,8 +89,6 @@ FEATURE_LABELS = {
     "sssegments": "single-stranded segments",
     "gquadruplexes": "G-tetrads",
     "uturns": "U-turns",
-    "pseudoknot": "pseudoknots",
-    "pseudoknots": "pseudoknots",
 }
 
 # Base colors: A = Red, C = Yellow/Amber, G = Green, U/T = Cyan
@@ -1093,7 +1090,7 @@ class DssrParser:
         """Extract total item count for any DSSR feature safely."""
         if not isinstance(dssr_data, dict):
             return 0
-        if feature == "pseudoknot":
+        if feature == "pseudoknots":
             return DssrParser._count_pseudoknot_layers(dssr_data)
 
         json_key = FEATURE_MAP.get(feature, feature)
@@ -1126,7 +1123,7 @@ class DssrParser:
             ("Stems", "stems"),
             ("Coaxial stacks", "coaxstacks"),
             ("Multiplets", "multiplets"),
-            ("Pseudoknots", "pseudoknot"),
+            ("Pseudoknots", "pseudoknots"),
             ("Hairpins", "hairpins"),
             ("Bulges", "bulges"),
             ("Internal loops", "iloops"),
@@ -1151,7 +1148,7 @@ class DssrParser:
         feature = str(feature).lower().strip()
         idx = int(index)
 
-        if feature == "pseudoknot":
+        if feature == "pseudoknots":
             dotbracket = DssrParser._extract_dotbracket(dssr_data)
             nts_list = dssr_data.get("nts", None)
             if nts_list is None:
@@ -1512,7 +1509,7 @@ class DssrCmd:
     ):
         """Create a feature selection from already analyzed DSSR data."""
         json_key = FEATURE_MAP[feature]
-        if feature == "pseudoknot":
+        if feature == "pseudoknots":
             layer_colors = ["blue", "pink", "green", "yellow", "orange"]
 
             dotbracket = DssrParser._extract_dotbracket(dssr_data)
@@ -2350,7 +2347,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
             for feature in FEATURE_ORDER:
                 count = (
                     DssrParser._count_pseudoknot_layers(data)
-                    if feature == "pseudoknot"
+                    if feature == "pseudoknots"
                     else len(DssrParser.feature_entries(data, feature))
                 )
                 if count > 0:
@@ -2394,7 +2391,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         self._items_all = []
         data = _DSSR_DATA_CACHE.get("data")
         if data is not None:
-            if self._current_feature == "pseudoknot":
+            if self._current_feature == "pseudoknots":
                 layers = DssrParser.parse_dotbracket_pseudoknots(
                     DssrParser._extract_dotbracket(data)
                 )
@@ -2467,7 +2464,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
             self.next_btn.hide()
 
     def _entry_for_feature_index(self, data, feature, index):
-        if feature in ("pseudoknot", "pseudoknots"):
+        if feature == "pseudoknots":
             layers = DssrParser.parse_dotbracket_pseudoknots(
                 DssrParser._extract_dotbracket(data)
             )
@@ -2716,7 +2713,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
 
             if has_filter and self._items_filtered:
                 indices = [item[0] for item in self._items_filtered]
-            elif feature == "pseudoknot":
+            elif feature == "pseudoknots":
                 layers = DssrParser.parse_dotbracket_pseudoknots(
                     DssrParser._extract_dotbracket(data)
                 )
