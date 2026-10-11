@@ -46,7 +46,7 @@ for mod in ("pymol.Qt", "PyQt5", "PyQt6"):
 # Global Constants & Configuration Mappings
 # ---------------------------------------------------------------------------
 
-__DSSR_PLUGIN_VERSION__ = "v2.0.2"
+__DSSR_PLUGIN_VERSION__ = "v2.1.0"
 DSSR_TIMEOUT_SECONDS = 300  # Default timeout in seconds (5 minutes)
 DSSR_LARGE_STRUCTURE_THRESHOLD = 20000  # Atom count threshold for warning
 
