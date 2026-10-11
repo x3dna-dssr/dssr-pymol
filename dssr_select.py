@@ -4530,6 +4530,10 @@ class Dssr2DLayout:
         rise = 40.0
         half_width = 18.0
         placed_stems = set()
+        outward_5prime = {}
+        outward_3prime = {}
+        lateral_5prime = {}
+        lateral_3prime = {}
 
         def place_stem(stem, outer_center, direction):
             marker = id(stem)
@@ -4540,6 +4544,22 @@ class Dssr2DLayout:
             direction = Dssr2DLayout._v_norm(direction)
             normal = (-direction[1], direction[0])
             pairs = stem["pairs"]
+
+            # Record terminal outward and lateral vectors for overhang placement
+            outer_i, outer_j = stem["outer_i"], stem["outer_j"]
+            inner_i, inner_j = stem["inner_i"], stem["inner_j"]
+
+            outward_5prime[outer_i] = Dssr2DLayout._v_mul(direction, -1.0)
+            lateral_5prime[outer_i] = normal
+
+            outward_5prime[inner_j] = direction
+            lateral_5prime[inner_j] = Dssr2DLayout._v_mul(normal, -1.0)
+
+            outward_3prime[inner_i] = direction
+            lateral_3prime[inner_i] = normal
+
+            outward_3prime[outer_j] = Dssr2DLayout._v_mul(direction, -1.0)
+            lateral_3prime[outer_j] = Dssr2DLayout._v_mul(normal, -1.0)
 
             for k, (i, j) in enumerate(pairs):
                 center = Dssr2DLayout._v_add(
@@ -4684,32 +4704,40 @@ class Dssr2DLayout:
 
             if following is not None and positions[following] is not None:
                 anchor = positions[following]
-                direction = directions[following] or (0.0, 1.0)
-                normal = (-direction[1], direction[0])
+                out_dir = outward_5prime.get(following)
+                lat_dir = lateral_5prime.get(following)
+                if out_dir is None:
+                    base_dir = directions[following] or (0.0, 1.0)
+                    out_dir = Dssr2DLayout._v_mul(base_dir, -1.0)
+                    lat_dir = Dssr2DLayout._v_mul((-base_dir[1], base_dir[0]), -1.0)
                 for offset, index in enumerate(range(end, start - 1, -1), 1):
                     positions[index] = Dssr2DLayout._v_add(
                         anchor,
                         Dssr2DLayout._v_add(
-                            Dssr2DLayout._v_mul(direction, -36.0 * offset),
-                            Dssr2DLayout._v_mul(normal, -10.0 * offset),
+                            Dssr2DLayout._v_mul(out_dir, 36.0 * offset),
+                            Dssr2DLayout._v_mul(lat_dir, 10.0 * offset),
                         ),
                     )
-                    directions[index] = direction
+                    directions[index] = out_dir
                 return
 
             if previous is not None and positions[previous] is not None:
                 anchor = positions[previous]
-                direction = directions[previous] or (0.0, 1.0)
-                normal = (-direction[1], direction[0])
+                out_dir = outward_3prime.get(previous)
+                lat_dir = lateral_3prime.get(previous)
+                if out_dir is None:
+                    base_dir = directions[previous] or (0.0, 1.0)
+                    out_dir = Dssr2DLayout._v_mul(base_dir, -1.0)
+                    lat_dir = (-base_dir[1], base_dir[0])
                 for offset, index in enumerate(range(start, end + 1), 1):
                     positions[index] = Dssr2DLayout._v_add(
                         anchor,
                         Dssr2DLayout._v_add(
-                            Dssr2DLayout._v_mul(direction, -36.0 * offset),
-                            Dssr2DLayout._v_mul(normal, 10.0 * offset),
+                            Dssr2DLayout._v_mul(out_dir, 36.0 * offset),
+                            Dssr2DLayout._v_mul(lat_dir, 10.0 * offset),
                         ),
                     )
-                    directions[index] = direction
+                    directions[index] = out_dir
                 return
 
             for offset, index in enumerate(range(start, end + 1)):
