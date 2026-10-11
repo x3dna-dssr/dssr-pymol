@@ -76,6 +76,7 @@ FEATURE_MAP = {
     "uturns": "Uturns",
     "splayunits": "splayUnits",
     "pseudoknot": "pseudoknot",
+    "pseudoknots": "pseudoknot",
     "nts": "nts",
     "sssegments": "ssSegments",
 }
@@ -90,6 +91,7 @@ FEATURE_LABELS = {
     "gquadruplexes": "G-tetrads",
     "uturns": "U-turns",
     "pseudoknot": "pseudoknots",
+    "pseudoknots": "pseudoknots",
 }
 
 # Base colors: A = Red, C = Yellow/Amber, G = Green, U/T = Cyan
@@ -1552,7 +1554,7 @@ class DssrCmd:
 
             if not quiet:
                 print(
-                    'dssr_select: selection "%s" pseudoknot layer %d with %d pair(s)'
+                    'dssr_select: selection "%s" pseudoknot order %d with %d pair(s)'
                     % (name, index, len(pairs))
                 )
             return
@@ -2465,12 +2467,17 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
             self.next_btn.hide()
 
     def _entry_for_feature_index(self, data, feature, index):
-        if feature == "pseudoknot":
+        if feature in ("pseudoknot", "pseudoknots"):
             layers = DssrParser.parse_dotbracket_pseudoknots(
                 DssrParser._extract_dotbracket(data)
             )
             key = sorted(layers)[index - 1]
-            return {"layer": key, "pair_count": len(layers[key]), "pairs": layers[key]}
+            return {
+                "order": index,
+                "symbols": "[]" if index == 1 else "{}" if index == 2 else "<>",
+                "pair_count": len(layers[key]),
+                "pairs": layers[key],
+            }
         return DssrParser.feature_entries(data, feature)[index - 1]
 
     def _show_item_details(self, data, feature, index):
