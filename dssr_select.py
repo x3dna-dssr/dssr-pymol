@@ -83,12 +83,13 @@ FEATURE_ORDER = list(FEATURE_MAP.keys())
 FEATURE_LABELS = {
     "nonstack": "non-stacking nts",
     "coaxstacks": "coaxial stacks",
-    "atom2bases": "atom-base stacking",
-    "aminors": "A-minor",
+    "atom2bases": "atom-base stacks",
+    "aminors": "A-minor motifs",
     "splayunits": "splayed-apart units",
     "sssegments": "single-stranded segments",
     "gquadruplexes": "G-tetrads",
     "uturns": "U-turns",
+    "pseudoknot": "pseudoknots",
 }
 
 # Base colors: A = Red, C = Yellow/Amber, G = Green, U/T = Cyan
@@ -2344,7 +2345,8 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         if feat == "pairs":
             text = "Filter (e.g. canonical, !canonical, wc, Hoogsteen)..."
         else:
-            text = "Filter %s (match, !negation)..." % feat
+            label = FEATURE_LABELS.get(feat, feat)
+            text = "Filter %s (match, !negation)..." % label
         self.filter_edit.setPlaceholderText(text)
 
     def _on_feature_changed(self, *_args):
