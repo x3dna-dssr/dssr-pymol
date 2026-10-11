@@ -2343,19 +2343,11 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
     def _update_filter_placeholder(self):
         """Update placeholder text based on the active structural feature."""
         feat = getattr(self, "_current_feature", "pairs")
-        hints = {
-            "pairs": "Filter (e.g. canonical, !canonical, wc, Hoogsteen)...",
-            "stems": "Filter stems (e.g. =4, pairs=4, !pairs=7)...",
-            "helices": "Filter helices (e.g. =4, pairs=4)...",
-            "hairpins": "Filter hairpins (e.g. size=4, !seq=)...",
-            "bulges": "Filter bulges (e.g. size=1)...",
-            "iloops": "Filter internal loops (e.g. size=...)...",
-            "junctions": "Filter junctions (e.g. 4-way, stems=4)...",
-            "pseudoknot": "Filter pseudoknots (e.g. layer A)...",
-        }
-        self.filter_edit.setPlaceholderText(
-            hints.get(feat, f"Filter {feat} (text match, !negation)...")
-        )
+        if feat == "pairs":
+            text = "Filter (e.g. canonical, !canonical, wc, Hoogsteen)..."
+        else:
+            text = "Filter %s (match, !negation)..." % feat
+        self.filter_edit.setPlaceholderText(text)
 
     def _on_feature_changed(self, *_args):
         self._current_feature = str(self.feature_combo.currentData() or "pairs")
