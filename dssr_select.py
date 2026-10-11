@@ -1000,8 +1000,7 @@ class DssrParser:
                 if isinstance(entry.get("pairs", []), list)
                 else 0
             )
-            nm = entry.get("name", entry.get("index", ""))
-            return "%d: %s (pairs=%d)" % (i, str(nm), n)
+            return "%d: pairs=%d" % (i, n)
 
         if feature in (
             "stacks",
@@ -1728,7 +1727,6 @@ class DssrUI:
     @staticmethod
     def combo(items, editable=False, tip=""):
         widget = QtWidgets.QComboBox()
-        # Use an explicit QListView so macOS renders custom stylesheet padding & colors cleanly
         view = QtWidgets.QListView(widget)
         widget.setView(view)
         widget.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToContents)
