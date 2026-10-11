@@ -42,20 +42,15 @@ for mod in ("pymol.Qt", "PyQt5", "PyQt6"):
     except ImportError:
         pass
 
-# ---------------------------------------------------------------------------
 # Global Constants & Configuration Mappings
-# ---------------------------------------------------------------------------
 
 __DSSR_PLUGIN_VERSION__ = "v2.1.0"
 DSSR_TIMEOUT_SECONDS = 300  # Default timeout in seconds (5 minutes)
 DSSR_LARGE_STRUCTURE_THRESHOLD = 20000  # Atom count threshold for warning
 
-# Window geometry defaults
-DSSR_DEFAULT_WINDOW_SIZE = (1280, 800)  # (width, height)
-DSSR_DEFAULT_SPLITTER_WIDTHS = (
-    340,
-    940,
-)  # sidebar (340 px) + 2D studio (940 px) = 1280 px
+# Window geometry defaults (width, height), and splitter widths: sidebar + 2D studio
+DSSR_DEFAULT_WINDOW_SIZE = (1280, 800)
+DSSR_DEFAULT_SPLITTER_WIDTHS = (340, 940)  # 340 + 940 = 1280
 
 # DSSR structural feature mapping
 FEATURE_MAP = {
@@ -157,10 +152,7 @@ LAYOUT_ALIASES = {
     "tree": "radiate",
 }
 
-# ---------------------------------------------------------------------------
 # Runtime Session State & GUI Teardown
-# ---------------------------------------------------------------------------
-
 _DSSR_BLOCK_OBJECTS = set()
 _DSSR_SELECTION_OBJECTS = set()
 _DSSR_DATA_CACHE = {"key": None, "data": None}
@@ -4351,7 +4343,6 @@ class DssrNaview:
         self.angleinc = theta
 
 
-# RNA layout algorithms
 class Dssr2DLayout:
     """Dependency-free layout algorithms for RNA graphs."""
 
