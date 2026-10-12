@@ -198,7 +198,7 @@ def _teardown_existing_dialog():
         for w in QtWidgets.QApplication.topLevelWidgets():
             if isinstance(w, QtWidgets.QDialog) and (
                 w.__class__.__name__ == "DssrGuiDialog"
-                or w.windowTitle() == "DSSR RNA Studio"
+                or w.windowTitle().startswith("DSSR RNA Studio")
             ):
                 _safe_close(w)
 
@@ -1841,7 +1841,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("DSSR RNA Studio")
+        self.setWindowTitle("DSSR RNA Studio (%s)" % __DSSR_PLUGIN_VERSION__)
         self.setWindowFlag(QtCore.Qt.WindowMinimizeButtonHint, True)
         self.resize(*DSSR_DEFAULT_WINDOW_SIZE)
         self.setStyleSheet(DssrTheme.LIGHT)
