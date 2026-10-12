@@ -1765,6 +1765,16 @@ class DssrUI:
     """Convenience factory and setup routines for Qt widgets and graphics items."""
 
     @staticmethod
+    def sans_font(point_size, bold=True):
+        """Return a clean cross-platform sans-serif font without alias lookup delay."""
+        font = QtGui.QFont()
+        font.setStyleHint(QtGui.QFont.SansSerif)
+        font.setFamilies(["Helvetica Neue", "Arial", "DejaVu Sans"])
+        font.setPointSize(int(point_size))
+        font.setBold(bool(bold))
+        return font
+
+    @staticmethod
     def button(text, clicked, tip=""):
         widget = QtWidgets.QPushButton(text)
         widget.clicked.connect(clicked)
@@ -5394,10 +5404,7 @@ class Dssr2DNodeItem(QtWidgets.QGraphicsEllipseItem):
 
     def _add_text(self):
         text = QtWidgets.QGraphicsSimpleTextItem(str(self.nt.get("base", "N")), self)
-        font = QtGui.QFont("Sans Serif")
-        font.setPointSize(12)  # High-legibility 12pt Bold
-        font.setBold(True)
-        text.setFont(font)
+        text.setFont(DssrUI.sans_font(12, bold=True))
         rect = text.boundingRect()
         text.setPos(-rect.width() / 2.0, -rect.height() / 2.0)
         text.setBrush(
@@ -6634,10 +6641,7 @@ class Dssr2DEditor(QtWidgets.QWidget):
             nt = self.model.nts[index]
             value = str(nt.get("resi") or nt.get("number", index + 1))
             label = QtWidgets.QGraphicsSimpleTextItem(value, node)
-            font = QtGui.QFont("Sans Serif")
-            font.setPointSize(11)
-            font.setBold(True)
-            label.setFont(font)
+            label.setFont(DssrUI.sans_font(11, bold=True))
             label.setBrush(QtGui.QBrush(num_color))
 
             pos = node.pos()
@@ -6837,10 +6841,9 @@ class Dssr2DEditor(QtWidgets.QWidget):
             ox1 = ux1 * 28.0 - 8.0
             oy1 = uy1 * 28.0 - 8.0
             label_5 = QtWidgets.QGraphicsSimpleTextItem("5′", node_first)
-            font_term = QtGui.QFont("Sans Serif")
-            font_term.setPointSize(13)
-            font_term.setBold(True)
+            font_term = DssrUI.sans_font(13, bold=True)
             label_5.setFont(font_term)
+
             label_5.setBrush(QtGui.QBrush(term_color))
             label_5.setPos(ox1, oy1)
             label_5.setZValue(8.0)
@@ -6883,10 +6886,7 @@ class Dssr2DEditor(QtWidgets.QWidget):
                 chain = str(self.model.nts[first].get("chain", "")).strip()
                 text_value = "chain %s" % (chain or segment_number)
                 label_ch = QtWidgets.QGraphicsSimpleTextItem(text_value, node_first)
-                font_ch = QtGui.QFont("Sans Serif")
-                font_ch.setPointSize(11)
-                font_ch.setBold(True)
-                label_ch.setFont(font_ch)
+                label_ch.setFont(DssrUI.sans_font(11, bold=True))
                 label_ch.setBrush(QtGui.QBrush(term_color))
 
                 br_ch = label_ch.boundingRect()
