@@ -7868,6 +7868,16 @@ for _command in (dssr_select, dssr_block, dssr_2d, dssr_gui):
 try:
     for _name in ("dssr_select", "dssr_block", "dssr_2d"):
         cmd.auto_arg[0][_name] = cmd.auto_arg[0]["zoom"]
+
+    # Shorthand 2-argument syntax (e.g., dssr_select 1ehz, <TAB>)
+    cmd.auto_arg[1]["dssr_select"] = [
+        cmd.Shortcut(FEATURE_ORDER + list(FEATURE_ALIASES.keys())),
+        "feature",
+        "",
+    ]
+    cmd.auto_arg[1]["dssr_2d"] = [cmd.Shortcut(LAYOUT_CHOICES), "layout", ""]
+
+    # Formal 3/4-argument syntax (e.g., dssr_select 1ehz, 1, <TAB>)
     cmd.auto_arg[2]["dssr_block"] = [cmd.Shortcut(BLOCK_FEATURES), "block_file", ""]
     cmd.auto_arg[2]["dssr_2d"] = [cmd.Shortcut(LAYOUT_CHOICES), "layout", ""]
     cmd.auto_arg[2]["dssr_select"] = [
