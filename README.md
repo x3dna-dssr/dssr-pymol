@@ -135,7 +135,7 @@ If you use this plugin in your research, please cite it as follows:
 
 **Software Citation**
 
-> Eric Chen, Bener Dulger, and Xiang-Jun Lu. **dssr_select: A PyMOL plugin for interactive RNA/DNA structural feature selection and visualization.** (2026). Available at: https://github.com/xiang-jun/dssr-pymol
+> Eric Chen, Bener Dulger, and Xiang-Jun Lu. **dssr_select: A PyMOL plugin for interactive RNA/DNA structural feature selection and visualization.** (2026). Available at: https://github.com/x3dna-dssr/dssr-pymol
 
 **Core Technology Citation**
 
