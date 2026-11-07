@@ -35,7 +35,7 @@
 ### Installation & Requirements
 
 #### Requirements
-1. **PyMOL**: Modern PyMOL (v2.x or v3.x, Open-Source or Incentive build) with Python 3 and PyQt5/PyQt6.
+1. **PyMOL**: Modern PyMOL (v2.x or v3.x, Open-Source or Incentive build) with Python 3 and PyQt5/PyQt6. SVG export also requires the QtSvg module (included in standard PyQt5/PyQt6 installations); without it, diagrams are exported as PNG.
 2. **DSSR (`x3dna-dssr`)**: The `x3dna-dssr` command-line executable must be installed and accessible in your system `PATH` (or configured via the plugin).
    * Available from [Columbia Technology Ventures](https://inventions.techventures.columbia.edu/technologies/dssr-an-integrated-software--CU20391).
 
@@ -68,6 +68,8 @@ dssr_gui
 ### Command-Line Interface (CLI)
 
 All core functions can be scripted or invoked directly from the PyMOL console:
+
+The `state` argument may be omitted (e.g., `dssr_select 1ehz, hairpins, 2`). For clarity, we recommend naming later arguments explicitly (e.g., `name=`, `number_every=`).
 
 #### 1. Interactive 2D Studio (`dssr_2d`)
 Syntax: `dssr_2d [ selection [, state [, layout [, number_every [, show_noncanonical [, title [, export ]]]]]]]`

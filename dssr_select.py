@@ -44,7 +44,7 @@ for mod in ("pymol.Qt", "PyQt5", "PyQt6"):
 
 # Global Constants & Configuration Mappings
 
-__DSSR_PLUGIN_VERSION__ = "v2.1.0"
+__DSSR_PLUGIN_VERSION__ = "v2.1.1"
 DSSR_TIMEOUT_SECONDS = 300  # Default timeout in seconds (5 minutes)
 DSSR_LARGE_STRUCTURE_THRESHOLD = 20000  # Atom count threshold for warning
 
@@ -422,6 +422,28 @@ class DssrUtils:
         while s.lower().startswith("error:"):
             s = s[6:].strip()
         return s
+
+    @staticmethod
+    def shift_shorthand(values, defaults):
+        """Resolve the shorthand form in which the state argument is omitted.
+
+        `values` holds the arguments as received, starting with the state slot;
+        `defaults` holds the corresponding defaults. When state is not an
+        integer, each positional value belongs to the next parameter, so values
+        are shifted right by one. Positional arguments fill slots contiguously,
+        so the shift stops at the first slot left at its default; later slots
+        hold keyword arguments and are kept. Returns (state, *params).
+        """
+        try:
+            return [int(values[0])] + list(values[1:])
+        except (ValueError, TypeError):
+            pass
+        out = [-1] + list(values[1:])
+        for i in range(1, len(values)):
+            out[i] = values[i - 1]
+            if i == len(values) - 1 or str(values[i]) == str(defaults[i]):
+                break
+        return out
 
     @staticmethod
     def normalize_layout(layout):
@@ -1280,7 +1302,7 @@ class DssrCmd:
 
             selection = str: atom selection {default: all}
 
-            state = int: object state (0 for all states) {default: -1, current state}
+            state = int: object state; 0 or -1 means the current state {default: -1}
 
             feature = str: structural feature type (e.g. pairs, stems, helices,
                       hairpins, bulges, iloops, junctions, pseudoknot, gquadruplexes).
@@ -1304,19 +1326,15 @@ class DssrCmd:
             # Select hairpin #1 and assign a custom selection name
             dssr_select 1ehz, hairpins, 1, name=loop1
         """
-        # Support formal (dssr_select sele, state, feature, index)
-        # and shorthand (dssr_select sele, feature [, index])
+        # Support formal (dssr_select sele, state, feature, index, name)
+        # and shorthand (dssr_select sele, feature [, index [, name]])
+        state, feature, index, name = DssrUtils.shift_shorthand(
+            [state, feature, index, name], [-1, "pairs", 1, "dssr_select"]
+        )
         try:
-            state = int(state)
+            index = int(index)
         except (ValueError, TypeError):
-            try:
-                index = int(feature)
-            except (ValueError, TypeError):
-                index = 1
-            feature = state
-            state = -1
-
-        index = int(index)
+            raise CmdException('index must be an integer, got "%s"' % index)
         show_info = int(show_info)
         quiet = int(quiet)
         precolor = int(precolor)
@@ -1423,12 +1441,15 @@ class DssrCmd:
 
             dssr_block [ selection [, state [, block_file [, block_depth
                 [, block_color [, name [, exe ]]]]]]]
+            dssr_block [ selection [, block_file [, block_depth
+                [, block_color [, name ]]]]]
 
         ARGUMENTS
 
             selection = str: atom selection {default: all}
 
-            state = int: object state (0 for all states) {default: -1, current state}
+            state = int: object state; 0 for all states, -1 for the current state
+                    {default: -1}
 
             block_file = face|edge|wc|g4|equal|minor|gray|fill|hbond:
                          Corresponds to the --block-file option (see DSSR manual).
@@ -1460,10 +1481,12 @@ class DssrCmd:
             fetch 1msy
             dssr_block block_color=N red | minor 0.9 | major yellow
         """
-        try:
-            state = int(state)
-        except Exception:
-            state = -1
+        # Support formal (dssr_block sele, state, block_file, ...)
+        # and shorthand (dssr_block sele, block_file [, block_depth ...])
+        state, block_file, block_depth, block_color, name = DssrUtils.shift_shorthand(
+            [state, block_file, block_depth, block_color, name],
+            [-1, "face", 0.5, "", ""],
+        )
         quiet = int(quiet)
 
         if state < 0:
@@ -1646,7 +1669,7 @@ class DssrCmd:
 
             selection = str: atom selection or object name {default: all}
 
-            state = int: object state (0 for all states) {default: -1, current state}
+            state = int: object state; 0 or -1 means the current state {default: -1}
 
             layout = standard|circular|linear|radiate: 2D diagram layout
                      algorithm {default: standard}
@@ -1660,7 +1683,9 @@ class DssrCmd:
                     SVG headers, and FASTA/DBN sequence exports {default: DSSR-2D}
 
             export = str: target output path to export diagram image directly (.png or .svg)
-                     without interactive file dialogs {default: ''}
+                     without interactive file dialogs. SVG export requires the
+                     QtSvg module; without it, the diagram is saved as PNG
+                     to <export>.png {default: ''}
 
             exe = str: path to "x3dna-dssr" executable {default: x3dna-dssr}
 
@@ -1688,15 +1713,18 @@ class DssrCmd:
         global _DSSR_GUI_DIALOG
         selection = DssrUtils.unquote(selection).strip()
         exe = DssrUtils.clean_exe_path(exe)
+
+        # Support formal (dssr_2d sele, state, layout, ...)
+        # and shorthand (dssr_2d sele, layout [, number_every ...])
+        state, layout, number_every, show_noncanonical, title, export = (
+            DssrUtils.shift_shorthand(
+                [state, layout, number_every, show_noncanonical, title, export],
+                [-1, "standard", 10, 0, "", ""],
+            )
+        )
+
         title = DssrUtils.unquote(title).strip()
         export = DssrUtils.unquote(export).strip()
-
-        # Handle natural positional shorthand: dssr_2d <selection>, <layout>
-        try:
-            state = int(state)
-        except (ValueError, TypeError):
-            layout = state
-            state = -1
 
         layout = DssrUtils.normalize_layout(layout)
         number_every = int(number_every)
@@ -1741,12 +1769,19 @@ class DssrCmd:
         if export and editor is not None:
             lower = export.lower()
             if lower.endswith(".svg") and QtSvg is not None:
-                editor._export_svg(export)
+                out_path = export
+                editor._export_svg(out_path)
             else:
                 out_path = export if lower.endswith(".png") else (export + ".png")
                 editor._export_png(out_path)
-            if not int(quiet):
-                print("dssr_2d: exported %s" % export)
+                if lower.endswith(".svg"):
+                    print(
+                        "dssr_2d: SVG export requires the QtSvg module "
+                        "(PyQt5.QtSvg or PyQt6.QtSvg), which was not found; "
+                        "saved as PNG instead"
+                    )
+            if not int(quiet) or out_path != export:
+                print("dssr_2d: exported %s" % out_path)
             return editor
 
         # Display window and focus the 2D canvas
