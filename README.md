@@ -85,7 +85,7 @@ Supported features: `pairs`, `stems`, `helices`, `hairpins`, `bulges`, `iloops`,
 
 Examples:
 * `dssr_select 1ehz, stems, 1`
-* `dssr_select 1ehz, hairpins, 1, name=anticodon_loop`
+* `dssr_select 1ehz, hairpins, 2, name=anticodon_loop`
 * `dssr_select 1ehz, helices, 0`
 
 #### 3. Stylized Base Blocks (`dssr_block`)
