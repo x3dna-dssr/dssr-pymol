@@ -530,9 +530,11 @@ class DssrUtils:
 
     @staticmethod
     def _selection_json(selection, state, exe, precolor=False):
-        """Export and analyze a selection, always removing its temporary PDB."""
+        """Export and analyze a selection, always removing its temporary mmCIF."""
+        # mmCIF keeps multi-character chain IDs and residue numbers > 9999,
+        # which the fixed-width PDB format would truncate.
         with tempfile.TemporaryDirectory(prefix="dssr_") as directory:
-            path = os.path.join(directory, "input.pdb")
+            path = os.path.join(directory, "input.cif")
             cmd.save(path, selection, state)
             if precolor:
                 cmd.color("gray", selection)
@@ -1500,7 +1502,7 @@ class DssrCmd:
 
         exe_clean = DssrUtils.clean_exe_path(exe)
         with tempfile.TemporaryDirectory(prefix="dssr_block_") as directory:
-            tmpfilepdb = os.path.join(directory, "input.pdb")
+            tmpfilecif = os.path.join(directory, "input.cif")
             tmpfiler3d = os.path.join(directory, "blocks.r3d")
             if state == 0:
                 try:
@@ -1512,13 +1514,13 @@ class DssrCmd:
                 states = [max(1, int(state))]
 
             for st in states:
-                cmd.save(tmpfilepdb, selection, st)
+                cmd.save(tmpfilecif, selection, st)
 
                 args = [
                     exe_clean,
                     "--block-file=" + DssrUtils.unquote(block_file),
                     "--block-depth=" + str(block_depth),
-                    "-i=" + tmpfilepdb,
+                    "-i=" + tmpfilecif,
                     "-o=" + tmpfiler3d,
                 ]
 
