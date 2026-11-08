@@ -765,7 +765,7 @@ class DssrUtils:
             parts = raw.split("|")
             chain = parts[2] if len(parts) > 2 else ""
             resn = parts[3] if len(parts) > 3 else ""
-            resi = parts[4] if len(parts) > 4 else ""
+            resi = DssrParser._resi_with_ins(parts)
             if chain and resn and resi:
                 return "%s.%s%s" % (chain, resn, resi)
         return raw
@@ -794,26 +794,39 @@ class DssrParser:
         return value if isinstance(value, list) else []
 
     @staticmethod
+    def _resi_with_ins(parts):
+        """Residue number plus insertion code (field 7) from split EBI unit ID parts."""
+        resi = parts[4].strip() if len(parts) > 4 else ""
+        ins = parts[7].strip() if len(parts) > 7 else ""
+        return resi + ins
+
+    @staticmethod
     def parse_nt_id(nt_id):
         """
         Parses a nucleotide identifier in Jmol/EBI Unit ID format:
         |Model Number| Chain ID|Residue Identifier|Residue Number|Atom Name|Alternate ID|Insertion Code|
-        Returns a compatible tuple of (chain, resi_number).
+        Returns a compatible tuple of (chain, resi), where resi includes any
+        insertion code (e.g., "20A"), matching PyMOL's resi.
         """
         parts = str(nt_id).strip().split("|")
         if len(parts) >= 5:
-            return parts[2].strip(), parts[4].strip()
+            return parts[2].strip(), DssrParser._resi_with_ins(parts)
         raise CmdException('Unexpected nt_id format: "%s"' % nt_id)
 
     @staticmethod
     def parse_a2b_atom(atom_id):
         """
         Parses atom-to-base strings in Jmol/EBI Unit ID format.
-        Returns a compatible tuple of (chain, resi_number, atom_name).
+        Returns a compatible tuple of (chain, resi, atom_name), where resi
+        includes any insertion code.
         """
         parts = str(atom_id).strip().split("|")
         if len(parts) >= 6:
-            return parts[2].strip(), parts[4].strip(), parts[5].strip()
+            return (
+                parts[2].strip(),
+                DssrParser._resi_with_ins(parts),
+                parts[5].strip(),
+            )
         raise CmdException('Unexpected atom format: "%s"' % atom_id)
 
     @staticmethod
@@ -850,11 +863,11 @@ class DssrParser:
 
     @staticmethod
     def _sort_resi_key(resi_str):
-        """Sort residue numbers naturally (numeric when possible, fallback to string)."""
-        try:
-            return (0, int(str(resi_str)))
-        except Exception:
-            return (1, str(resi_str))
+        """Sort residue numbers naturally: numeric part, then insertion code."""
+        match = re.match(r"^(-?\d+)(.*)$", str(resi_str).strip())
+        if match:
+            return (0, int(match.group(1)), match.group(2))
+        return (1, 0, str(resi_str))
 
     @staticmethod
     def _escape_resi(r):
