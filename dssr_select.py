@@ -1907,7 +1907,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         self._build_widgets()
         self._context_timer = QtCore.QTimer(self)
         self._context_timer.setInterval(750)
-        self._context_timer.timeout.connect(self._check_context)
+        self._context_timer.timeout.connect(lambda: self._check_context(periodic=True))
         self._refresh_objects()
 
     def _build_widgets(self):
@@ -2158,7 +2158,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
 
     def _molecule_objects(self):
         """Return a list of valid molecular object names, excluding blocks and selections."""
-        objects = cmd.get_object_list()
+        objects = cmd.get_names("objects")
         valid = []
         for name in objects:
             if (
@@ -2169,16 +2169,12 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
                 continue
             try:
                 # Ensure the entry is a real molecule and contains atoms
+                # (count_states and get_type create no temporary selections)
                 obj_type = cmd.get_type(name)
-                if obj_type == "object:molecule" and cmd.count_atoms(name) > 0:
+                if obj_type == "object:molecule" and cmd.count_states(name) > 0:
                     valid.append(name)
             except Exception:
-                # Fallback check if get_type is unavailable
-                try:
-                    if cmd.count_atoms(name) > 0:
-                        valid.append(name)
-                except Exception:
-                    pass
+                pass
         return valid
 
     def _refresh_objects(self):
@@ -2257,8 +2253,12 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         except Exception:
             pass
 
-    def _check_context(self):
-        """Periodically verify that the analyzed structure remains valid and loaded in PyMOL."""
+    def _check_context(self, periodic=False):
+        """Verify that the analyzed structure remains valid and loaded in PyMOL.
+
+        The periodic (timer) check avoids count_atoms(), which creates hidden
+        temporary selections that reset clicks in PyMOL's object panel.
+        """
         if self._loading or self._analysis_context is None or not self.isVisible():
             return
         try:
@@ -2270,11 +2270,14 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
                 ch in selection for ch in " ()=+"
             )
 
-            structure_missing = (
-                (is_single_object and selection not in loaded_objects)
-                or not valid_molecules
-                or cmd.count_atoms(selection, state=state) <= 0
-            )
+            if is_single_object:
+                structure_missing = (
+                    selection not in loaded_objects or selection not in valid_molecules
+                )
+            else:
+                structure_missing = not valid_molecules or (
+                    not periodic and cmd.count_atoms(selection, state=state) <= 0
+                )
 
             if structure_missing:
                 self._clear_analysis(
@@ -7610,6 +7613,22 @@ class Dssr2DEditor(QtWidgets.QWidget):
             )
         )
 
+    def _pymol_models(self):
+        """Return the object names covered by the analyzed selection (cached)."""
+        selection = self.pymol_selection
+        cached = getattr(self, "_models_cache", None)
+        if cached is not None and cached[0] == selection:
+            return cached[1]
+        try:
+            if selection in cmd.get_names("objects"):
+                models = {selection}
+            else:
+                models = set(cmd.get_object_list("(%s)" % selection))
+        except Exception:
+            models = set()
+        self._models_cache = (selection, models)
+        return models
+
     def _pull_pymol_selection(self):
         """Synchronize 3D PyMOL selections to 2D nodes without unnecessary overhead."""
         if (
@@ -7642,23 +7661,48 @@ class Dssr2DEditor(QtWidgets.QWidget):
                 self._update_editor_status("3D selection cleared")
             return
 
-        try:
-            active_sel = " or ".join("(%s)" % s for s in enabled_selections)
-            scoped = "((%s) and (%s))" % (self.pymol_selection, active_sel)
-            current_count = int(cmd.count_atoms(scoped))
-        except Exception:
-            current_count = 0
+        # Poll with plain selection names only. count_atoms() and compound
+        # selection expressions create (and delete) hidden temporary
+        # selections, which reset clicks in PyMOL's object panel; with a
+        # 450 ms poll, a single click there would then often be lost.
+        signature_parts = []
+        for name in enabled_selections:
+            try:
+                xyz = cmd.get_coords(name, -1)
+            except Exception:
+                xyz = None
+            if xyz is None:
+                signature_parts.append((name, 0, 0.0))
+            else:
+                signature_parts.append((name, len(xyz), float(xyz.sum())))
+        selection_signature = tuple(signature_parts)
 
         if (
             enabled_selections == self._last_active_names
-            and current_count == self._last_sel_count
+            and selection_signature == self._last_sel_count
         ):
             return
 
         self._last_active_names = enabled_selections
-        self._last_sel_count = current_count
+        self._last_sel_count = selection_signature
 
-        if current_count <= 0:
+        residues = set()
+        models = self._pymol_models()
+        for name in enabled_selections:
+            found = set()
+            try:
+                cmd.iterate(
+                    name,
+                    "_dssr_found.add((model, chain, resi))",
+                    space={"_dssr_found": found},
+                )
+            except Exception:
+                continue
+            residues.update(
+                (chain, resi) for model, chain, resi in found if model in models
+            )
+
+        if not residues:
             if self._last_pymol_signature:
                 self._last_pymol_signature = tuple()
                 self._sync_from_pymol = self._rebuilding = True
@@ -7668,16 +7712,6 @@ class Dssr2DEditor(QtWidgets.QWidget):
                 finally:
                     self._rebuilding = self._sync_from_pymol = False
             return
-
-        residues = set()
-        try:
-            cmd.iterate(
-                scoped,
-                "_dssr_residues.add((chain, resi))",
-                space={"_dssr_residues": residues},
-            )
-        except Exception:
-            residues = set()
 
         signature = tuple(sorted(residues))
         if signature == self._last_pymol_signature:
