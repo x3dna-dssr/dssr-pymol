@@ -14,7 +14,7 @@
   * Multiple layout projections: **Standard NAView**, **Circular**, **Linear (arc)**, and **Radiate**.
   * Automated tRNA cloverleaf topology recognition and standardized orientation (acceptor stem pointing down, anticodon arm pointing up).
   * Direct visualization of non-canonical (non-WC/Wobble) base pairs as curved tertiary arcs.
-* **Bi-directional 2D ⟷ 3D Selection Linking**:
+* **Bidirectional 2D ⟷ 3D Selection Linking**:
   * Interactive canvas picking (click, box select, or brush tool `B`) mirrors directly to PyMOL 3D viewport selections.
   * Real-time 3D-to-2D synchronization: selections made in PyMOL are reflected back onto the 2D layout nodes and 1D sequence ruler.
   * Interactive diagram editing with soft dragging, base-pair, loop, stem, and branch kinematic manipulation, backed by a full undo/redo stack (`Ctrl+Z` / `Ctrl+Y`).
@@ -72,7 +72,7 @@ All core functions can be scripted or invoked directly from the PyMOL console:
 The `state` argument may be omitted (e.g., `dssr_select 1ehz, hairpins, 2`). For clarity, we recommend naming later arguments explicitly (e.g., `name=`, `number_every=`).
 
 #### 1. Interactive 2D Studio (`dssr_2d`)
-Syntax: `dssr_2d [ selection [, state [, layout [, number_every [, show_noncanonical [, title [, export ]]]]]]]`
+Syntax: `dssr_2d [ selection [, state [, layout [, number_every [, show_noncanonical [, title [, export [, exe ]]]]]]]]`
 
 Examples:
 * `dssr_2d 1ehz`
@@ -81,7 +81,7 @@ Examples:
 * `dssr_2d 1ehz, number_every=5`
 
 #### 2. Feature Selection (`dssr_select`)
-Syntax: `dssr_select [ selection [, state [, feature [, index [, name ]]]]]`
+Syntax: `dssr_select [ selection [, state [, feature [, index [, name [, exe ]]]]]]`
 
 Supported features: `pairs`, `stems`, `helices`, `hairpins`, `bulges`, `iloops`, `junctions`, `pseudoknot`, `gquadruplexes`, `uturns`, `aminors`, `stacks`, etc.
 

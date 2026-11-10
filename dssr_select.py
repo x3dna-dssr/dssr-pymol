@@ -1310,7 +1310,7 @@ class DssrCmd:
 
         USAGE
 
-            dssr_select [ selection [, state [, feature [, index [, name ]]]]]
+            dssr_select [ selection [, state [, feature [, index [, name [, exe ]]]]]]
             dssr_select [ selection [, feature [, index [, name ]]]]
 
         ARGUMENTS
@@ -1327,6 +1327,12 @@ class DssrCmd:
                     for the chosen feature. {default: 1}
 
             name = str: name of the new PyMOL selection {default: dssr_select}
+
+            exe = str: path to "x3dna-dssr" executable {default: x3dna-dssr}
+
+            color = str: PyMOL color name or hex code (e.g., FF00AA), given as a
+                    keyword (color=blue) {default: auto: pink, or blue, pink, green,
+                    yellow, orange for pseudoknot orders 1, 2, 3, ...}
 
         EXAMPLE
 
@@ -1448,9 +1454,6 @@ class DssrCmd:
         DESCRIPTION
 
             Create a nucleic acid base "block" cartoon with DSSR.
-
-            Requires the "x3dna-dssr" program, available from URL:
-                https://inventions.techventures.columbia.edu/technologies/dssr-an-integrated-software--CU20391
 
         USAGE
 
@@ -1671,12 +1674,12 @@ class DssrCmd:
         DESCRIPTION
 
             Open the interactive RNA 2D layout studio for secondary structure
-            visualization, bi-directional 3D selection linking, and layout export.
+            visualization, bidirectional 2D-3D selection linking, and layout export.
 
         USAGE
 
             dssr_2d [ selection [, state [, layout [, number_every [, show_noncanonical
-                [, title [, export ]]]]]]]
+                [, title [, export [, exe ]]]]]]]]
             dssr_2d [ selection [, layout [, number_every [, show_noncanonical
                 [, title [, export ]]]]]]
 
@@ -1703,8 +1706,6 @@ class DssrCmd:
                      to <export>.png {default: ''}
 
             exe = str: path to "x3dna-dssr" executable {default: x3dna-dssr}
-
-            quiet = 0|1: suppress console status output {default: 1}
 
         EXAMPLE
 
