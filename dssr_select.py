@@ -1045,9 +1045,10 @@ class DssrParser:
         if feature == "pairs":
             nt1 = DssrUtils.format_unit_id(entry.get("nt1", "?"))
             nt2 = DssrUtils.format_unit_id(entry.get("nt2", "?"))
-            lw = str(entry.get("LW", entry.get("bp", ""))).strip()
+            bp = str(entry.get("bp", "")).strip()
+            lw = str(entry.get("LW", "")).strip()
             name = str(entry.get("name", "")).strip()
-            tags = [t for t in (lw, name) if t]
+            tags = [t for t in (bp, lw, name) if t]
             tag_str = (" (%s)" % ", ".join(tags)) if tags else ""
             return "%d: %s - %s%s" % (i, nt1, nt2, tag_str)
 
@@ -2462,7 +2463,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         """Update placeholder text based on the active structural feature."""
         feat = getattr(self, "_current_feature", "pairs")
         if feat == "pairs":
-            text = "Filter (e.g. canonical, !canonical, wc, Hoogsteen)..."
+            text = "Filter (e.g. canonical, !canonical, G-U, A+A, Hoogsteen)..."
         else:
             label = FEATURE_LABELS.get(feat, feat)
             text = "Filter %s (match, !negation)..." % label
@@ -5304,9 +5305,10 @@ class Dssr2DEdgeItem(QtWidgets.QGraphicsPathItem):
             return ("Base pair: %s" % self.lw) if self.lw else ""
         nt1 = DssrUtils.format_unit_id(self.dssr_entry.get("nt1", "?"))
         nt2 = DssrUtils.format_unit_id(self.dssr_entry.get("nt2", "?"))
-        lw = str(self.dssr_entry.get("LW", self.dssr_entry.get("bp", ""))).strip()
+        bp = str(self.dssr_entry.get("bp", "")).strip()
+        lw = str(self.dssr_entry.get("LW", "")).strip()
         name = str(self.dssr_entry.get("name", "")).strip()
-        tags = [t for t in (lw, name) if t]
+        tags = [t for t in (bp, lw, name) if t]
         tag_str = (" (%s)" % ", ".join(tags)) if tags else ""
         return "%s - %s%s" % (nt1, nt2, tag_str)
 
