@@ -35,7 +35,7 @@
 ### Installation & Requirements
 
 #### Requirements
-1. **PyMOL**: Modern PyMOL (v2.x or v3.x, Open-Source or Incentive build) with Python 3 and PyQt5/PyQt6. SVG export also requires the QtSvg module (included in standard PyQt5/PyQt6 installations); without it, diagrams are exported as PNG.
+1. **PyMOL**: Modern PyMOL (v2.x or v3.x, open-source or incentive build) with Python 3 and PyQt5/PyQt6. SVG export also requires the QtSvg module (included in standard PyQt5/PyQt6 installations); without it, diagrams are exported as PNG.
 2. **DSSR (`x3dna-dssr`)**: The `x3dna-dssr` command-line executable must be installed and accessible in your system `PATH` (or configured via the plugin).
    * Available from [Columbia Technology Ventures](https://inventions.techventures.columbia.edu/technologies/dssr-an-integrated-software--CU20391).
 
