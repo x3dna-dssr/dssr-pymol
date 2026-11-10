@@ -1,0 +1,27 @@
+TITLE     The crystal structure of yeast phenylalanine tRNA at 1.93 A resolution
+ ExecutiveLoad-Detail: Detected mmCIF
+ CmdLoad: "./1ehz.cif" loaded as "1ehz".
+Loaded DSSR-PyMOL v2.1.2 (RNA 2D studio, Python/Qt)
+PyMOL>fetch 1ehz, type=cif
+PyMOL>dssr_select 1ehz, features
+Supported features: aminors, atom2bases, bulges, coaxstacks, gquadruplexes, hairpins, helices, iloops, junctions, multiplets, nonstack, nts, pairs, pseudoknots, splayunits, sssegments, stacks, stems, uturns
+Tip: use index=0 to list detected items for a feature.
+PyMOL>dssr_select 1ehz, junctions, 0
+junctions: 1 item(s)
+  1: |1|A|U|7||||, |1|A|U|8||||, |1|A|A|9||||, ..., |1|A|5MC|49||||, |1|A|G|65||||, |1|A|A|66||||
+PyMOL>dssr_select 1ehz, junctions, 1
+dssr_select: (chain A and resi 7+8+9+10+25+26+27+43+44+45+46+47+48+49+65+66)
+dssr_select: created selection "dssr_select" for junctions (index 1)
+PyMOL>dssr_select 1ehz, hairpins, 0
+hairpins: 3 item(s)
+  1: |1|A|C|13||||, |1|A|A|14||||, |1|A|G|15||||, ..., |1|A|G|20||||, |1|A|A|21||||, |1|A|G|22||||
+  2: |1|A|G|30||||, |1|A|A|31||||, |1|A|OMC|32||||, ..., |1|A|A|38||||, |1|A|PSU|39||||, |1|A|5MC|40||||
+  3: |1|A|G|53||||, |1|A|5MU|54||||, |1|A|PSU|55||||, ..., |1|A|U|59||||, |1|A|C|60||||, |1|A|C|61||||
+PyMOL>dssr_select 1ehz, stems, 0
+stems: 4 item(s)
+  1: pairs=7
+  2: pairs=4
+  3: pairs=4
+  4: pairs=5
+PyMOL>dssr_block 1ehz
+dssr_block: loaded "dssr_block01" (block_file=face, block_depth=0.5)

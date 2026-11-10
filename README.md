@@ -99,6 +99,9 @@ Examples:
 * `dssr_block 1ehz`
 * `dssr_block 1ehz, block_file=wc-minor, block_depth=0.5`
 
+#### Sample Input and Output
+The [`examples/`](examples/) folder contains sample PyMOL scripts for yeast tRNA-Phe (1EHZ) and their output: a `dssr_select`/`dssr_block` session and the four `dssr_2d` layouts.
+
 ---
 
 ### Keyboard Shortcuts in 2D Studio
