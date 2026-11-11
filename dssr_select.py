@@ -6367,13 +6367,20 @@ class Dssr2DSequenceView(QtWidgets.QTextEdit):
     def set_letter_colors(self, enabled):
         enabled = bool(enabled)
         self._letter_colors = enabled
+        # Plain letters are dark navy, the same as the dark-theme background
+        plain_dark = not enabled and getattr(self.editor, "is_dark", False)
         cursor = QtGui.QTextCursor(self.document())
         cursor.beginEditBlock()
         for nt, (start, end) in zip(self.editor.model.nts, self._spans):
             cursor.setPosition(start)
             cursor.setPosition(end, QtGui.QTextCursor.KeepAnchor)
             style = QtGui.QTextCharFormat()
-            style.setForeground(DssrUtils.base_text_color(nt.get("base", ""), enabled))
+            if plain_dark:
+                style.setForeground(QtGui.QColor("#f8fafc"))
+            else:
+                style.setForeground(
+                    DssrUtils.base_text_color(nt.get("base", ""), enabled)
+                )
             style.setFontWeight(QtGui.QFont.Bold)
             cursor.setCharFormat(style)
         cursor.endEditBlock()
@@ -7652,12 +7659,15 @@ class Dssr2DEditor(QtWidgets.QWidget):
             if edge.kind == "noncanonical":
                 edge.setVisible(self.show_noncanonical)
 
+        # Plain dark letters vanish on the dark background without circles
+        light_letters = is_dark and not self.base_colors and not self.show_circles
         for node in self.nodes:
-            node.base_text_item.setBrush(
-                QtGui.QBrush(
-                    DssrUtils.base_text_color(node.nt.get("base", ""), self.base_colors)
-                )
+            text_color = DssrUtils.base_text_color(
+                node.nt.get("base", ""), self.base_colors
             )
+            if light_letters and not node.isSelected():
+                text_color = label_color
+            node.base_text_item.setBrush(QtGui.QBrush(text_color))
             for child in node.childItems():
                 if child is not node.base_text_item and isinstance(
                     child, QtWidgets.QGraphicsSimpleTextItem
