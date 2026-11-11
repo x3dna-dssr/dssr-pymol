@@ -88,11 +88,14 @@ Supported features: `pairs`, `stems`, `helices`, `hairpins`, `bulges`, `iloops`,
 
 The `index` selects one item (1, 2, ...); `index=0` lists all detected items, and `index=-1` selects all of them.
 
+Each `dssr_select` first colors the input selection gray; add `precolor=0` to keep the colors of earlier selections.
+
 Examples:
 * `dssr_select 1ehz, stems, 1`
 * `dssr_select 1ehz, hairpins, 2, name=anticodon_loop`
 * `dssr_select 1ehz, helices, 0`
 * `dssr_select 1ehz, stems, -1, name=all_stems`
+* `dssr_select 1ehz, stems, 2, name=stem2, color=red, precolor=0`
 
 #### 3. Stylized Base Blocks (`dssr_block`)
 Syntax: `dssr_block [ selection [, state [, block_file [, block_depth [, block_color [, name [, exe ]]]]]]]`

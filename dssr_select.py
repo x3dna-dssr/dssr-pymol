@@ -1349,6 +1349,10 @@ class DssrCmd:
                     keyword (color=blue) {default: auto: pink, or blue, pink, green,
                     yellow, orange for pseudoknot orders 1, 2, 3, ...}
 
+            precolor = 0/1: color the input selection gray before highlighting;
+                       use precolor=0 to keep colors from earlier selections
+                       {default: 1}
+
         EXAMPLE
 
             fetch 1ehz
@@ -1364,6 +1368,9 @@ class DssrCmd:
 
             # Select hairpin #1 and assign a custom selection name
             dssr_select 1ehz, hairpins, 1, name=loop1
+
+            # Add stem #2 in red, keeping the hairpin #1 colors
+            dssr_select 1ehz, stems, 2, name=stem2, color=red, precolor=0
         """
         # Support formal (dssr_select sele, state, feature, index, name)
         # and shorthand (dssr_select sele, feature [, index [, name]])
