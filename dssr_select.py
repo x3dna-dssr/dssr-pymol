@@ -75,6 +75,8 @@ FEATURE_MAP = {
     "sssegments": "ssSegments",
 }
 FEATURE_ORDER = list(FEATURE_MAP.keys())
+# Colors of pseudoknot orders 1, 2, 3, ... (cycled)
+PSEUDOKNOT_COLORS = ["blue", "pink", "green", "yellow", "orange"]
 FEATURE_LABELS = {
     "nonstack": "non-stacking nts",
     "coaxstacks": "coaxial stacks",
@@ -1430,6 +1432,17 @@ class DssrCmd:
             )
 
     @staticmethod
+    def _color_pseudoknot_orders(name, dssr_data, indices):
+        """Color each pseudoknot order in selection `name` by its order color."""
+        for idx in indices:
+            part = DssrParser._build_residue_sel_from_dssr(
+                dssr_data, "pseudoknots", idx
+            )
+            if part:
+                color = PSEUDOKNOT_COLORS[(idx - 1) % len(PSEUDOKNOT_COLORS)]
+                cmd.color(color, "(%s) and (%s)" % (name, part))
+
+    @staticmethod
     def _unused_name(prefix):
         try:
             return cmd.get_unused_name(prefix)
@@ -1578,8 +1591,6 @@ class DssrCmd:
     ):
         """Create a feature selection from already analyzed DSSR data."""
         if feature == "pseudoknots":
-            layer_colors = ["blue", "pink", "green", "yellow", "orange"]
-
             dotbracket = DssrParser._extract_dotbracket(dssr_data)
             nts_list = dssr_data.get("nts", None)
             if nts_list is None:
@@ -1614,12 +1625,9 @@ class DssrCmd:
                 if user_color:
                     cmd.color(user_color, name)
                 else:
-                    for j, part in enumerate(parts):
-                        if part:
-                            cmd.color(
-                                layer_colors[j % len(layer_colors)],
-                                "(%s) and (%s)" % (name, part),
-                            )
+                    DssrCmd._color_pseudoknot_orders(
+                        name, dssr_data, range(1, len(layer_keys) + 1)
+                    )
                 if not quiet:
                     print(
                         'dssr_select: selection "%s" with all %d pseudoknot order(s)'
@@ -1634,7 +1642,7 @@ class DssrCmd:
 
             layer_key = layer_keys[index - 1]
             pairs = layers[layer_key]
-            layer_color = layer_colors[(index - 1) % len(layer_colors)]
+            layer_color = PSEUDOKNOT_COLORS[(index - 1) % len(PSEUDOKNOT_COLORS)]
 
             sel_str = DssrParser.build_selection_from_layer(pairs, nts_list)
             if sel_str is None:
@@ -2791,6 +2799,8 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
             sel_str = " or ".join(parts)
             DssrCmd._create_feature_selection(nm, sel, sel_str, quiet=0)
             cmd.color("pink", nm)
+            if feat == "pseudoknots":
+                DssrCmd._color_pseudoknot_orders(nm, data, indices)
 
             try:
                 cmd.delete("sele")
@@ -2885,6 +2895,8 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
 
             cmd.color("gray", selection)
             cmd.color("pink", name)
+            if feature == "pseudoknots":
+                DssrCmd._color_pseudoknot_orders(name, data, indices)
             cmd.select("sele", name)
             cmd.enable("sele")
             cmd.refresh()
