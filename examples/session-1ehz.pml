@@ -4,7 +4,7 @@ fetch 1ehz, type=cif
 dssr_select 1ehz, features
 # index=0: list the junctions found by DSSR (here, one 4-way junction)
 dssr_select 1ehz, junctions, 0
-# index=1: select the first junction (named "dssr_select" by default)
+# index=1: select the first junction (named "dssr_sele" by default)
 dssr_select 1ehz, junctions, 1
 # List the hairpin loops and the stems
 dssr_select 1ehz, hairpins, 0

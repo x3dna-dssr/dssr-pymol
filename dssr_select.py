@@ -1299,7 +1299,7 @@ class DssrCmd:
         state=-1,
         feature="pairs",
         index=1,
-        name="dssr_select",
+        name="dssr_sele",
         exe="x3dna-dssr",
         show_info=0,
         quiet=1,
@@ -1330,7 +1330,7 @@ class DssrCmd:
                     for the chosen feature, and index=-1 to select all of them.
                     {default: 1}
 
-            name = str: name of the new PyMOL selection {default: dssr_select}
+            name = str: name of the new PyMOL selection {default: dssr_sele}
 
             exe = str: path to "x3dna-dssr" executable {default: x3dna-dssr}
 
@@ -1357,7 +1357,7 @@ class DssrCmd:
         # Support formal (dssr_select sele, state, feature, index, name)
         # and shorthand (dssr_select sele, feature [, index [, name]])
         state, feature, index, name = DssrUtils.shift_shorthand(
-            [state, feature, index, name], [-1, "pairs", 1, "dssr_select"]
+            [state, feature, index, name], [-1, "pairs", 1, "dssr_sele"]
         )
         try:
             index = int(index)
