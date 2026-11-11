@@ -26,6 +26,7 @@
 * **Feature Browser & Search**:
   * Query DSSR-detected structural features: base pairs, stems, helices, hairpins, bulges, internal loops, junctions, pseudoknots, A-minors, stacks, G-quadruplexes, and U-turns.
   * Filter motifs with boolean queries (`wc | wobble`, `-wc`) and inline clear functionality.
+  * Base-pair labels include DSSR's simplified pair type (e.g., `G-C`, `A+A`), so pairs can be filtered by type, or by `+` for pairs whose base normals are parallel.
 * **Publication-Quality Export**:
   * Export 2D diagrams directly to vector **SVG** or high-resolution **PNG**.
   * Save and reload edited 2D coordinates (`.dssr2d.json`) or copy Dot-Bracket Notation (`.dbn`) directly to the clipboard.
@@ -85,10 +86,13 @@ Syntax: `dssr_select [ selection [, state [, feature [, index [, name [, exe ]]]
 
 Supported features: `pairs`, `stems`, `helices`, `hairpins`, `bulges`, `iloops`, `junctions`, `pseudoknot`, `gquadruplexes`, `uturns`, `aminors`, `stacks`, etc.
 
+The `index` selects one item (1, 2, ...); `index=0` lists all detected items, and `index=-1` selects all of them.
+
 Examples:
 * `dssr_select 1ehz, stems, 1`
 * `dssr_select 1ehz, hairpins, 2, name=anticodon_loop`
 * `dssr_select 1ehz, helices, 0`
+* `dssr_select 1ehz, stems, -1, name=all_stems`
 
 #### 3. Stylized Base Blocks (`dssr_block`)
 Syntax: `dssr_block [ selection [, state [, block_file [, block_depth [, block_color [, name [, exe ]]]]]]]`
