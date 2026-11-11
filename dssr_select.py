@@ -544,7 +544,11 @@ class DssrUtils:
         # which the fixed-width PDB format would truncate.
         with tempfile.TemporaryDirectory(prefix="dssr_") as directory:
             path = os.path.join(directory, "input.cif")
-            cmd.save(path, selection, state)
+            # Parentheses make PyMOL evaluate the selection case-insensitively;
+            # a bare object name in the wrong case (5tpy for 5TPY) saves nothing.
+            if int(cmd.count_atoms("(%s)" % selection, state=state)) == 0:
+                raise CmdException('Selection "%s" contains no atoms' % selection)
+            cmd.save(path, "(%s)" % selection, state)
             if precolor:
                 cmd.color("gray", selection)
             return DssrUtils.run_dssr_json(path, exe)
@@ -1558,7 +1562,11 @@ class DssrCmd:
                 states = [max(1, int(state))]
 
             for st in states:
-                cmd.save(tmpfilecif, selection, st)
+                if int(cmd.count_atoms("(%s)" % selection, state=st)) == 0:
+                    raise CmdException(
+                        'Selection "%s" contains no atoms' % selection
+                    )
+                cmd.save(tmpfilecif, "(%s)" % selection, st)
 
                 args = [
                     exe_clean,
