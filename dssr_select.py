@@ -5404,7 +5404,7 @@ class Dssr2DEdgeItem(QtWidgets.QGraphicsPathItem):
             width = 1.0
             style = QtCore.Qt.SolidLine
         elif self.kind == "noncanonical":
-            # Thin gray dots keep non-canonical pairs apart from pseudoknots
+            # Gray dots keep non-canonical pairs apart from pseudoknots
             color = (
                 QtGui.QColor(148, 163, 184) if is_dark else QtGui.QColor(100, 116, 139)
             )
@@ -5423,7 +5423,8 @@ class Dssr2DEdgeItem(QtWidgets.QGraphicsPathItem):
 
         pen = QtGui.QPen(color, width, style, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
         if self.kind == "noncanonical":
-            pen.setDashPattern([0.1, 4.0])
+            # Round dots 3 pen widths apart (Qt's DotLine looks continuous)
+            pen.setDashPattern([0.1, 3.0])
         self.setPen(pen)
         tip = self._pair_tooltip()
         if tip:
