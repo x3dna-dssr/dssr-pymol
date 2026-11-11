@@ -1109,7 +1109,13 @@ class DssrParser:
             return "%d: %s" % (i, ds if ds else dl)
 
         if feature == "nts":
-            return "%d: %s" % (i, entry.get("nt_id", "?"))
+            nt_id = DssrUtils.format_unit_id(entry.get("nt_id", "?"))
+            tags = [str(entry.get("nt_code", "")).strip()]
+            if entry.get("is_modified"):
+                tags.append("modified")
+            tags = [t for t in tags if t]
+            tag_str = (" (%s)" % ", ".join(tags)) if tags else ""
+            return "%d: %s%s" % (i, nt_id, tag_str)
 
         return "%d: (no preview)" % i
 
@@ -2543,6 +2549,8 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
         feat = getattr(self, "_current_feature", "pairs")
         if feat == "pairs":
             text = "Filter (e.g. canonical, !canonical, G-U, A+A, Hoogsteen)..."
+        elif feat == "nts":
+            text = "Filter (e.g. modified, !modified, PSU)..."
         else:
             label = FEATURE_LABELS.get(feat, feat)
             text = "Filter %s (match, !negation)..." % label
@@ -2884,7 +2892,7 @@ class DssrGuiDialog(QtWidgets.QDialog if QtWidgets else object):
 
             has_filter = bool(self.filter_edit.text().strip())
 
-            if has_filter and self._items_filtered:
+            if has_filter:
                 indices = [item[0] for item in self._items_filtered]
             elif feature == "pseudoknots":
                 layers = DssrParser.parse_dotbracket_pseudoknots(
