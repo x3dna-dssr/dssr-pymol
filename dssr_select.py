@@ -1325,7 +1325,8 @@ class DssrCmd:
                       Use "features" or "help" to list supported options. {default: pairs}
 
             index = int: 1-based feature index. Use index=0 to list all detected items
-                    for the chosen feature. {default: 1}
+                    for the chosen feature, and index=-1 to select all of them.
+                    {default: 1}
 
             name = str: name of the new PyMOL selection {default: dssr_select}
 
@@ -1344,6 +1345,9 @@ class DssrCmd:
 
             # List all detected stems
             dssr_select 1ehz, stems, 0
+
+            # Select all stems
+            dssr_select 1ehz, stems, -1, name=all_stems
 
             # Select hairpin #1 and assign a custom selection name
             dssr_select 1ehz, hairpins, 1, name=loop1
@@ -1367,7 +1371,10 @@ class DssrCmd:
         if feature in ("features", "help"):
             keys = sorted(FEATURE_MAP.keys())
             print("Supported features: " + ", ".join(keys))
-            print("Tip: use index=0 to list detected items for a feature.")
+            print(
+                "Tip: use index=0 to list detected items for a feature, "
+                "and index=-1 to select all of them."
+            )
             return
 
         if feature not in FEATURE_MAP:
@@ -1595,6 +1602,31 @@ class DssrCmd:
                 print("dssr_select: no pseudoknots detected in structure")
                 return
 
+            if index == -1:
+                parts = [
+                    DssrParser.build_selection_from_layer(layers[k], nts_list)
+                    for k in layer_keys
+                ]
+                sel_str = " or ".join("(%s)" % part for part in parts if part)
+                if not sel_str:
+                    raise CmdException("Could not build selection for pseudoknots")
+                DssrCmd._create_feature_selection(name, selection, sel_str, quiet=quiet)
+                if user_color:
+                    cmd.color(user_color, name)
+                else:
+                    for j, part in enumerate(parts):
+                        if part:
+                            cmd.color(
+                                layer_colors[j % len(layer_colors)],
+                                "(%s) and (%s)" % (name, part),
+                            )
+                if not quiet:
+                    print(
+                        'dssr_select: selection "%s" with all %d pseudoknot order(s)'
+                        % (name, len(layer_keys))
+                    )
+                return
+
             if index < 1 or index > len(layer_keys):
                 raise CmdException(
                     "Order index %d out of range (1..%d)" % (index, len(layer_keys))
@@ -1638,6 +1670,23 @@ class DssrCmd:
         if not feature_list:
             label = FEATURE_LABELS.get(feature, feature)
             print("dssr_select: no %s detected in structure" % label)
+            return
+
+        if index == -1:
+            parts = [
+                DssrParser._build_residue_sel_from_dssr(dssr_data, feature, i)
+                for i in range(1, len(feature_list) + 1)
+            ]
+            sel_str = " or ".join("(%s)" % part for part in parts if part)
+            if not sel_str:
+                raise CmdException("Could not build selection for all %s" % feature)
+            DssrCmd._create_feature_selection(name, selection, sel_str, quiet=quiet)
+            cmd.color(user_color if user_color else "pink", name)
+            if not quiet:
+                print(
+                    'dssr_select: created selection "%s" for all %d %s'
+                    % (name, len(feature_list), feature)
+                )
             return
 
         if index < 1 or index > len(feature_list):
