@@ -503,7 +503,14 @@ class DssrUtils:
     def run_dssr_json(pdb_path, exe, timeout=DSSR_TIMEOUT_SECONDS):
         exe_clean = DssrUtils.clean_exe_path(exe)
         out, err = DssrUtils._run_dssr(
-            [exe_clean, "--json", "--u-turn", "--idstr=ebi", "-i=" + pdb_path],
+            [
+                exe_clean,
+                "--json",
+                "--u-turn",
+                "--idstr=ebi",
+                "--auxfile=no",  # the plugin does not use the dssr-* files
+                "-i=" + pdb_path,
+            ],
             operation="DSSR JSON",
             timeout=timeout,
         )
