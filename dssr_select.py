@@ -1576,9 +1576,7 @@ class DssrCmd:
 
             for st in states:
                 if int(cmd.count_atoms("(%s)" % selection, state=st)) == 0:
-                    raise CmdException(
-                        'Selection "%s" contains no atoms' % selection
-                    )
+                    raise CmdException('Selection "%s" contains no atoms' % selection)
                 cmd.save(tmpfilecif, "(%s)" % selection, st)
 
                 args = [
@@ -4541,10 +4539,12 @@ class Dssr2DLayout:
         if n <= 0:
             return []
         break_gap = 0.40
-        total_gap = break_gap * len(model.chain_breaks)
+        # One gap per chain break plus one between the 3' and 5' ends, so
+        # strands are separated and the two ends do not crowd at the top
+        total_gap = break_gap * (len(model.chain_breaks) + 1)
         step = (2.0 * math.pi - total_gap) / max(1, n)
         radius = max(150.0, (n * 38.0) / (2.0 * math.pi))
-        theta = -math.pi / 2.0
+        theta = -math.pi / 2.0 + break_gap / 2.0
         out = []
         for i in range(n):
             out.append((radius * math.cos(theta), radius * math.sin(theta)))
@@ -6739,6 +6739,8 @@ class Dssr2DEditor(QtWidgets.QWidget):
         indices = set()
         if period > 0:
             indices.update(index for index in range(total) if (index + 1) % period == 0)
+        # Always number both ends of every strand
+        indices.update((0, total - 1))
         for break_after in self.model.chain_breaks:
             if 0 <= break_after < total:
                 indices.add(break_after)
@@ -6804,7 +6806,15 @@ class Dssr2DEditor(QtWidgets.QWidget):
             partner_idx = self._pair_partner(index)
 
             # 1. Determine strict OUTWARD vector
-            if 0 <= partner_idx < total:
+            if self.algorithm == "circular":
+                # Radial: "away from partner" points sideways for short chords
+                cx = px - center_x
+                cy = py - center_y
+                clen = math.hypot(cx, cy)
+                outward_x, outward_y = (
+                    (cx / clen, cy / clen) if clen > 1e-6 else (1.0, 0.0)
+                )
+            elif 0 <= partner_idx < total:
                 # Paired base: points strictly away from base-pair partner
                 p_pos = self.nodes[partner_idx].pos()
                 vx = px - p_pos.x()
